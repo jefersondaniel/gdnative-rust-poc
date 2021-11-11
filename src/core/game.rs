@@ -10,4 +10,9 @@ impl Game {
   pub fn new(_owner: &Node2D) -> Self {
     Game {}
   }
+
+  #[export]
+  pub fn _ready(&self, _owner: &Node2D) {
+    godot_print!("Game Started")
+  }
 }
