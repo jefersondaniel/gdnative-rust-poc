@@ -7,7 +7,7 @@ pub struct Game;
 
 #[methods]
 impl Game {
-    pub fn new(_owner: &Node2D) -> Self {
-        Game {}
-    }
+  pub fn new(_owner: &Node2D) -> Self {
+    Game {}
+  }
 }

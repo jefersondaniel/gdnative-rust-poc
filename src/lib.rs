@@ -5,7 +5,7 @@ mod core;
 mod io;
 
 fn init(handle: InitHandle) {
-    handle.add_class::<Game>();
+  handle.add_class::<Game>();
 }
 
 godot_init!(init);
