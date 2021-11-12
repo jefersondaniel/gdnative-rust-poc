@@ -6,7 +6,7 @@ use gdnative::prelude::*;
 use gdnative::api::{RegEx};
 use gdnative::api::file::File;
 
-struct FileSystem {
+pub struct FileSystem {
     titleregex: Ref<RegEx, Unique>,
     parsedlineregex: Ref<RegEx, Unique>,
 }

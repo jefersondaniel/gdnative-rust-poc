@@ -2,7 +2,7 @@
 pub struct TextSection {
     pub title: String,
     pub lines: Vec<String>,
-    parsedlines: Vec<(String, String)>
+    pub parsedlines: Vec<(String, String)>
 }
 
 pub struct AttributeValue {
