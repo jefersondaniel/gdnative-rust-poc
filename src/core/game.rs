@@ -23,7 +23,7 @@ impl Game {
                 for section in text_file.sections.iter() {
                     godot_print!("Section: '{}'", section.title);
                     for (key, value) in section.parsedlines.iter() {
-                        godot_print!("'{}' = '{}'", key, value);
+                        godot_print!("'{}' = '{}'", key, String::from(value));
                     }
                 }
                 godot_print!("Read Success");

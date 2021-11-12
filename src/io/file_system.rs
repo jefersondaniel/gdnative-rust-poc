@@ -1,4 +1,5 @@
 use crate::core::error::DataError;
+use crate::io::attribute_value::AttributeValue;
 use crate::io::text_file::TextFile;
 use crate::io::text_section::TextSection;
 use std::path::PathBuf;
@@ -67,7 +68,7 @@ impl FileSystem {
         let mut sections: Vec<TextSection> = Vec::new();
         let mut sectiontitle: String = "".to_string();
         let mut sectionlines: Vec<String> = Vec::new();
-        let mut sectionparsedlines: Vec<(String, String)> = Vec::new();
+        let mut sectionparsedlines: Vec<(String, AttributeValue)> = Vec::new();
 
         while !file.eof_reached() {
             let mut line = file.get_line().to_string();
@@ -114,7 +115,7 @@ impl FileSystem {
                     value = value[1..(value.len() - 1)].to_string();
                 }
 
-                sectionparsedlines.push((key, value));
+                sectionparsedlines.push((key, AttributeValue::new(value)));
             }
         }
 
