@@ -3,14 +3,14 @@ use crate::io::attribute_value::AttributeValue;
 #[derive(Clone)]
 pub struct TextSection {
     pub title: String,
-    pub lines: Vec<String>,
+    pub lines: Vec<AttributeValue>,
     pub parsedlines: Vec<(String, AttributeValue)>
 }
 
 impl TextSection {
     pub fn new(
         title: String,
-        lines: Vec<String>,
+        lines: Vec<AttributeValue>,
         parsedlines: Vec<(String, AttributeValue)>
     ) -> Self {
         TextSection {

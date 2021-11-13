@@ -5,10 +5,10 @@ pub struct AttributeValue {
 
 impl AttributeValue {
     pub fn new(
-        value: String,
+        value: &str,
     ) -> Self {
         AttributeValue {
-            value: value
+            value: String::from(value)
         }
     }
 }

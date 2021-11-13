@@ -67,7 +67,7 @@ impl FileSystem {
     pub fn build_text_file(&self, file: Ref<File, Unique>) -> TextFile {
         let mut sections: Vec<TextSection> = Vec::new();
         let mut sectiontitle: String = "".to_string();
-        let mut sectionlines: Vec<String> = Vec::new();
+        let mut sectionlines: Vec<AttributeValue> = Vec::new();
         let mut sectionparsedlines: Vec<(String, AttributeValue)> = Vec::new();
 
         while !file.eof_reached() {
@@ -104,7 +104,7 @@ impl FileSystem {
                 continue;
             }
 
-            sectionlines.push(line.clone());
+            sectionlines.push(AttributeValue::new(&line));
 
             if let Some(match_shared) = self.parsedlineregex.search(line.clone(), 0, -1) {
                 let match_unique = unsafe { match_shared.assume_unique() };
@@ -115,7 +115,7 @@ impl FileSystem {
                     value = value[1..(value.len() - 1)].to_string();
                 }
 
-                sectionparsedlines.push((key, AttributeValue::new(value)));
+                sectionparsedlines.push((key, AttributeValue::new(&value)));
             }
         }
 
