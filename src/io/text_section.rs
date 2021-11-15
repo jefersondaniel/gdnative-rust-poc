@@ -1,4 +1,4 @@
-use crate::io::attribute_value::AttributeValue;
+use crate::core::attribute_value::AttributeValue;
 
 #[derive(Clone)]
 pub struct TextSection {

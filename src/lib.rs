@@ -3,6 +3,8 @@ use crate::core::game::Game;
 
 mod core;
 mod io;
+mod drawing;
+mod animations;
 
 fn init(handle: InitHandle) {
   handle.add_class::<Game>();

@@ -1,5 +1,5 @@
 use crate::core::error::DataError;
-use crate::io::attribute_value::AttributeValue;
+use crate::core::attribute_value::AttributeValue;
 use crate::io::text_file::TextFile;
 use crate::io::text_section::TextSection;
 use std::path::PathBuf;
