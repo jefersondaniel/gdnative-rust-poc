@@ -109,11 +109,7 @@ impl FileSystem {
             if let Some(match_shared) = self.parsedlineregex.search(line.clone(), 0, -1) {
                 let match_unique = unsafe { match_shared.assume_unique() };
                 let key = match_unique.get_string(1).to_string();
-                let mut value = match_unique.get_string(2).to_string();
-
-                if value.len() >= 2 && value.starts_with('"') && value.ends_with('"') {
-                    value = value[1..(value.len() - 1)].to_string();
-                }
+                let value = match_unique.get_string(2).to_string();
 
                 sectionparsedlines.push((key, AttributeValue::new(&value)));
             }
