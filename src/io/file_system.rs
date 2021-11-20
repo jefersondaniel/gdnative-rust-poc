@@ -42,7 +42,7 @@ impl FileSystem {
         path_buf.to_str().unwrap().to_string()
     }
 
-    pub fn open_file(&self, filepath: String) -> Result<Ref<File, Unique>, DataError> {
+    pub fn open_file(&self, filepath: &str) -> Result<Ref<File, Unique>, DataError> {
         let file = File::new();
 
         if let Err(detail) = file.open(filepath, File::READ) {
@@ -55,7 +55,7 @@ impl FileSystem {
         Result::Ok(file)
     }
 
-    pub fn open_text_file(&self, filepath: String) -> Result<TextFile, DataError> {
+    pub fn open_text_file(&self, filepath: &str) -> Result<TextFile, DataError> {
         let result = self.open_file(filepath);
 
         match result {
@@ -113,6 +113,14 @@ impl FileSystem {
 
                 sectionparsedlines.push((key, AttributeValue::new(&value)));
             }
+        }
+
+        if !sectiontitle.is_empty() {
+            sections.push(TextSection::new(
+                sectiontitle.clone(),
+                sectionlines.clone(),
+                sectionparsedlines.clone()
+            ));
         }
 
         TextFile::new(file.get_path().to_string(), sections)

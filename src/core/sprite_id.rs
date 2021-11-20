@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Clone, Copy)]
 pub struct SpriteId {
     pub group: i32,
@@ -19,5 +21,11 @@ impl PartialEq for SpriteId {
 impl From<&SpriteId> for String {
     fn from(sprite_id: &SpriteId) -> String {
         format!("{}, {}", sprite_id.group, sprite_id.image)
+    }
+}
+
+impl Display for SpriteId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&String::from(self))
     }
 }

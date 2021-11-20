@@ -1,5 +1,7 @@
 use gdnative::godot_warn;
 
+use crate::core::regex::RegExFlags;
+
 use super::{attribute_value::AttributeValue, enumerations::BlendType, regex::RegEx};
 
 #[derive(Default, Copy, Clone, PartialEq)]
@@ -47,7 +49,7 @@ impl From<&AttributeValue> for Blending {
             return Blending::new(BlendType::Subtract, 255, 255);
         }
 
-        let regex = RegEx::new(r"^as(\d+)d(\d+)$");
+        let regex = RegEx::new(r"^as(\d+)d(\d+)$", RegExFlags::IgnoreCase);
 
         if let Some(regex_match) = regex.search(&text.to_lowercase()) {
             let source_option = regex_match.get_u8(1);

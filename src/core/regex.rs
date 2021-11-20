@@ -1,18 +1,39 @@
-use regex::{Captures, Regex};
+use std::fmt::Display;
+
+use enum_flags::EnumFlags;
+use regex::{Captures, Regex, RegexBuilder};
 
 pub struct RegEx {
+    pattern: String,
     value: Option<Regex>
+}
+
+#[repr(u16)]
+#[derive(EnumFlags, Copy, Clone, PartialEq)]
+pub enum RegExFlags {
+    None = 0b00,
+    IgnoreCase = 0b01,
 }
 
 pub struct RegExMatch<'a> {
     captures: Captures<'a>,
 }
 
+impl Display for RegEx {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.pattern)
+    }
+}
+
 impl RegEx {
-    pub fn new(pattern: &str) -> Self {
-        let value = Regex::new(pattern).ok();
+    pub fn new(pattern: &str, flags: RegExFlags) -> Self {
+        let value = RegexBuilder::new(pattern)
+            .case_insensitive(flags.contains(RegExFlags::IgnoreCase))
+            .build()
+            .ok();
 
         RegEx {
+            pattern: pattern.to_string(),
             value: value
         }
     }
@@ -34,7 +55,7 @@ impl RegEx {
 
 impl RegExMatch<'_> {
     pub fn get_string(&self, group: usize) -> String {
-        return self.captures[group].to_string();
+        self.captures.get(group).map_or("".to_string(), |m| m.as_str().to_string())
     }
 
     pub fn get_i32(&self, group: usize) -> Option<i32> {

@@ -6,9 +6,10 @@ use gdnative::{godot_error, godot_warn};
 use crate::core::attribute_value::AttributeValue;
 use crate::core::blending::Blending;
 use crate::core::enumerations::SpriteEffects;
+use crate::core::error::DataError;
 use crate::core::sprite_id::SpriteId;
 use crate::core::{enumerations::ClsnType};
-use crate::core::regex::RegEx;
+use crate::core::regex::{RegEx, RegExFlags};
 use crate::io::text_file::TextFile;
 use crate::io::text_section::TextSection;
 
@@ -23,10 +24,10 @@ pub struct AnimationLoader {
 
 impl AnimationLoader {
     pub fn new() -> Self {
-        let animationtitleregex = RegEx::new(r"^\s*begin action\s+(-?\d+)(,.+)?\s*$");
-        let clsnregex = RegEx::new(r"clsn([12])(default)?:\s*(\d+)");
-        let clsnlineregex = RegEx::new(r"clsn([12])?\[(-?\d+)\]\s*=\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)");
-        let elementregex = RegEx::new(r"\s*,\s*");
+        let animationtitleregex = RegEx::new(r"^\s*begin action\s+(-?\d+)(,.+)?\s*$", RegExFlags::IgnoreCase);
+        let clsnregex = RegEx::new(r"clsn([12])(default)?:\s*(\d+)", RegExFlags::IgnoreCase);
+        let clsnlineregex = RegEx::new(r"clsn([12])?\[(-?\d+)\]\s*=\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)", RegExFlags::IgnoreCase);
+        let elementregex = RegEx::new(r"\s*,\s*", RegExFlags::IgnoreCase);
 
         AnimationLoader {
             animationtitleregex: animationtitleregex,
@@ -40,13 +41,20 @@ impl AnimationLoader {
         let mut animations = HashMap::new();
 
         for section in text_file.sections.iter() {
-            let animation_option = self.create_animation(section);
+            let animation_result = self.create_animation(section);
 
-            if let Some(animation) = animation_option {
-                if !animations.contains_key(&animation.number) {
-                    animations.insert(animation.number, animation);
-                } else {
-                    godot_warn!("Invalid duplicated animation: {}", section.title)
+            match animation_result {
+                Ok(animation) => {
+                    if !animations.contains_key(&animation.number) {
+                        animations.insert(animation.number, animation);
+                    } else {
+                        godot_warn!("Invalid duplicated animation: {}", section.title)
+                    }
+                },
+                Err(error) => {
+                    if error.message != "No match" {
+                        godot_error!("{}", error.message);
+                    }
                 }
             }
         }
@@ -54,9 +62,10 @@ impl AnimationLoader {
         animations
     }
 
-    fn create_animation(&self, section: &TextSection) -> Option<Animation> {
-        let title_match = self.animationtitleregex.search(&section.title)?;
-        let animation_number = title_match.get_usize(1)?;
+    fn create_animation(&self, section: &TextSection) -> Result<Animation, DataError> {
+        let title_match = self.animationtitleregex.search(&section.title).ok_or_else(|| DataError::new("No match".to_string()))?;
+
+        let animation_number = title_match.get_usize(1).ok_or_else(|| DataError::new("Invalid animation number".to_string()))?;
 
         let mut loopstart = 0;
         let mut starttick = 0;
@@ -136,7 +145,7 @@ impl AnimationLoader {
                 continue;
             }
 
-            let element_option = self.create_element(
+            let element_result = self.create_element(
                 line,
                 elements.len(),
                 starttick,
@@ -146,31 +155,33 @@ impl AnimationLoader {
                 loading_type2.clone()
             );
 
-            if let Some(element) = element_option {
-                if element.gameticks == -1 {
-                    starttick = -1;
-                } else {
-                    starttick += element.gameticks;
-                }
+            match element_result {
+                Ok(element) => {
+                    if element.gameticks == -1 {
+                        starttick = -1;
+                    } else {
+                        starttick += element.gameticks;
+                    }
 
-                elements.push(element.clone());
-                loading_type1.clear();
-                loading_type2.clear();
-            } else {
-                godot_error!("Invalid animation element. Anim No: {}, line: {}", animation_number, line.to_string());
+                    elements.push(element.clone());
+                    loading_type1.clear();
+                    loading_type2.clear();
+                },
+                Err(error) => {
+                    godot_error!("Invalid animation element. Anim No: {}, Line: {}, Detail: {}", animation_number, line.to_string(), error.message.to_string());
+                }
             }
         }
 
         if elements.len() == 0 {
-            godot_error!("Invalid animation {}, no elements", animation_number);
-            return None
+            return Err(DataError::new(format!("Invalid animation {}, no elements", animation_number)));
         }
 
         if loopstart == elements.len() {
             loopstart = 0;
         }
 
-        Some(Animation::new(
+        Ok(Animation::new(
             animation_number,
             loopstart,
             elements
@@ -213,19 +224,19 @@ impl AnimationLoader {
         default_type2: Vec<Clsn>,
         loading_type1: Vec<Clsn>,
         loading_type2: Vec<Clsn>
-    ) -> Option<AnimationElement> {
+    ) -> Result<AnimationElement, DataError> {
         let line_string = line.to_string();
-        let elements = self.elementregex.split(&line_string)?;
+        let elements = self.elementregex.split(&line_string).ok_or_else(|| DataError::new("No match".to_string()))?;
 
         if elements.len() < 5 {
-            return None
+            return Err(DataError::new("Invalid animation element: Not enough parameters".to_string()));
         }
 
-        let groupnumber = elements[0].to_string().parse::<i32>().ok()?;
-        let imagenumber = elements[1].to_string().parse::<i32>().ok()?;
-        let offset_x = elements[2].to_string().parse::<i32>().ok()?;
-        let offset_y = elements[3].to_string().parse::<i32>().ok()?;
-        let gameticks = elements[4].to_string().parse::<i32>().ok()?;
+        let groupnumber = elements[0].to_string().parse::<i32>().unwrap_or(0);
+        let imagenumber = elements[1].to_string().parse::<i32>().unwrap_or(0);
+        let offset_x = elements[2].to_string().parse::<i32>().unwrap_or(0);
+        let offset_y = elements[3].to_string().parse::<i32>().unwrap_or(0);
+        let gameticks = elements[4].to_string().parse::<i32>().unwrap_or(0);
 
         let mut flip = SpriteEffects::None;
 
@@ -247,7 +258,7 @@ impl AnimationLoader {
             blending = Blending::from(line);
         }
 
-        let mut clsn = Vec::<Clsn>::new();;
+        let mut clsn = Vec::<Clsn>::new();
         clsn.extend(if loading_type1.len() != 0 { loading_type1.clone() } else { default_type1.clone() });
         clsn.extend(if loading_type2.len() != 0 { loading_type2.clone() } else { default_type2.clone() });
 
@@ -261,7 +272,7 @@ impl AnimationLoader {
             starttick
         );
 
-        Some(element)
+        Ok(element)
     }
 }
 
