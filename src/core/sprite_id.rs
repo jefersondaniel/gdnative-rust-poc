@@ -4,6 +4,12 @@ pub struct SpriteId {
     pub image: i32,
 }
 
+impl SpriteId {
+    pub fn new(group: i32, image: i32) -> Self {
+        SpriteId { group: group, image: image }
+    }
+}
+
 impl PartialEq for SpriteId {
     fn eq(&self, other: &Self) -> bool {
         self.group == other.group && self.image == other.image

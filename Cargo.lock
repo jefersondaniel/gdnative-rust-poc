@@ -725,6 +725,7 @@ dependencies = [
  "byteorder",
  "enum-flags",
  "gdnative",
+ "regex",
 ]
 
 [[package]]

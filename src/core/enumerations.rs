@@ -70,11 +70,19 @@ pub enum PositionType { None = 0, P1, P2, Front, Back, Left, Right }
 #[derive(Copy, Clone, PartialEq)]
 pub enum ClsnType { None, Type1Attack, Type2Normal }
 
+impl Default for ClsnType {
+    fn default() -> Self { ClsnType::None }
+}
+
 #[derive(Copy, Clone, PartialEq)]
 pub enum Facing { Left, Right }
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum BlendType { None, Add, Subtract }
+
+impl Default for BlendType {
+    fn default() -> Self { BlendType::None }
+}
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum BackgroundLayer { Front, Back }
@@ -168,5 +176,10 @@ pub enum ElementType { None, Static, Animation, Text }
 #[derive(Copy, Clone, PartialEq)]
 pub enum CombatMode { None, Arcade, Versus, TeamArcade, TeamVersus, TeamCoop, Survival, SurvivalCoop, Training }
 
-#[derive(Copy, Clone, PartialEq)]
-pub enum SpriteEffects { None, FlipHorizontally, FlipVertically }
+#[repr(u16)]
+#[derive(EnumFlags, Copy, Clone, PartialEq)]
+pub enum SpriteEffects {
+    None = 0b0,
+    FlipHorizontally = 0b01,
+    FlipVertically = 0b10
+}

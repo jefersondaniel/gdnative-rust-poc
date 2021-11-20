@@ -2,10 +2,10 @@ use gdnative::core_types::{Rect2, Vector2};
 
 use crate::core::enumerations::{ClsnType, Facing};
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Default, Copy, Clone, PartialEq)]
 pub struct Clsn {
-    clsn_type: ClsnType,
-    rect: Rect2,
+    pub clsn_type: ClsnType,
+    pub rect: Rect2,
 }
 
 impl Clsn {
