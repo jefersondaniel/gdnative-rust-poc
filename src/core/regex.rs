@@ -66,6 +66,10 @@ impl RegExMatch<'_> {
         self.get_string(group).parse::<u8>().ok()
     }
 
+    pub fn get_u16(&self, group: usize) -> Option<u16> {
+        self.get_string(group).parse::<u16>().ok()
+    }
+
     pub fn get_usize(&self, group: usize) -> Option<usize> {
         self.get_string(group).parse::<usize>().ok()
     }

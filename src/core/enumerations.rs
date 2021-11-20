@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use enum_flags::EnumFlags;
 #[derive(Copy, Clone, PartialEq)]
 pub enum Axis { None, X, Y }
@@ -182,4 +184,14 @@ pub enum SpriteEffects {
     None = 0b0,
     FlipHorizontally = 0b01,
     FlipVertically = 0b10
+}
+
+impl Display for SpriteEffects {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!(
+            "{}{}",
+            if self.contains(SpriteEffects::FlipHorizontally) { "H" } else { "" },
+            if self.contains(SpriteEffects::FlipVertically) { "V" } else { "" }
+        ))
+    }
 }

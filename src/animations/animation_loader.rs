@@ -37,7 +37,7 @@ impl AnimationLoader {
         }
     }
 
-    pub fn load_animations(&self, text_file: TextFile) -> HashMap<usize, Animation> {
+    pub fn load_animations(&self, text_file: TextFile) -> HashMap<i32, Animation> {
         let mut animations = HashMap::new();
 
         for section in text_file.sections.iter() {
@@ -65,7 +65,7 @@ impl AnimationLoader {
     fn create_animation(&self, section: &TextSection) -> Result<Animation, DataError> {
         let title_match = self.animationtitleregex.search(&section.title).ok_or_else(|| DataError::new("No match".to_string()))?;
 
-        let animation_number = title_match.get_usize(1).ok_or_else(|| DataError::new("Invalid animation number".to_string()))?;
+        let animation_number = title_match.get_i32(1).ok_or_else(|| DataError::new("Invalid animation number".to_string()))?;
 
         let mut loopstart = 0;
         let mut starttick = 0;
@@ -255,7 +255,7 @@ impl AnimationLoader {
         let mut blending = Blending::default();
 
         if elements.len() >= 7 {
-            blending = Blending::from(line);
+            blending = Blending::from(elements[6]);
         }
 
         let mut clsn = Vec::<Clsn>::new();

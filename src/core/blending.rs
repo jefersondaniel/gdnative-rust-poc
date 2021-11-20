@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use gdnative::godot_warn;
 
 use crate::core::regex::RegExFlags;
@@ -25,9 +27,9 @@ impl Blending {
     }
 }
 
-impl From<&AttributeValue> for Blending {
-    fn from(attribute_value: &AttributeValue) -> Blending {
-        let text = attribute_value.to_string().trim().to_lowercase();
+impl From<&str> for Blending {
+    fn from(raw_text: &str) -> Blending {
+        let text = raw_text.to_string().trim().to_lowercase();
 
         if text.is_empty() || "none" == text {
             return Blending::default();
@@ -52,15 +54,15 @@ impl From<&AttributeValue> for Blending {
         let regex = RegEx::new(r"^as(\d+)d(\d+)$", RegExFlags::IgnoreCase);
 
         if let Some(regex_match) = regex.search(&text.to_lowercase()) {
-            let source_option = regex_match.get_u8(1);
-            let destination_option = regex_match.get_u8(2);
+            let source_option = regex_match.get_u16(1);
+            let destination_option = regex_match.get_u16(2);
 
             if let Some(source) = source_option {
                 if let Some(destination) = destination_option {
                     return Blending::new(
                         BlendType::Add,
-                        source,
-                        destination
+                        source as u8,
+                        destination as u8
                     );
                 }
             }
@@ -69,5 +71,36 @@ impl From<&AttributeValue> for Blending {
         godot_warn!("Invalid blending format: {}", text);
 
         Blending::default()
+    }
+}
+
+impl Display for Blending {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.blend_type == BlendType::None {
+            return f.write_str("");
+        }
+
+        if self.blend_type == BlendType::Add && self.source == 0 && self.destination == 0 {
+            return f.write_str("addalpha");
+        }
+
+        if self.blend_type == BlendType::Add && self.source == 255 && self.destination == 255 {
+            return f.write_str("add");
+        }
+
+        if self.blend_type == BlendType::Add && self.source == 255 && self.destination == 127 {
+            return f.write_str("add1");
+        }
+
+        if self.blend_type == BlendType::Subtract && self.source == 255 && self.destination == 255 {
+            return f.write_str("sub");
+        }
+
+        f.write_str(&format!(
+            "{}S{}D{}",
+            if self.blend_type == BlendType::Add { "A" } else { "S" },
+            self.source,
+            self.destination
+        ))
     }
 }

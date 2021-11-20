@@ -1,5 +1,7 @@
+use std::fmt::Display;
+
 use gdnative::core_types::Vector2;
-use crate::core::{blending::Blending, enumerations::SpriteEffects, sprite_id::SpriteId};
+use crate::core::{blending::Blending, enumerations::SpriteEffects, error::DataError, sprite_id::SpriteId};
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct AnimationElement {
@@ -34,9 +36,9 @@ impl AnimationElement {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Animation {
-    pub number: usize,
+    pub number: i32,
     pub loopstart: usize,
     pub elements: Vec<AnimationElement>,
     pub totaltime: i32,
@@ -58,7 +60,7 @@ fn calculate_time(elements: &Vec<AnimationElement>) -> i32 {
 
 impl Animation {
     pub fn new(
-        number: usize,
+        number: i32,
         loopstart: usize,
         elements: Vec<AnimationElement>,
     ) -> Self {
@@ -70,5 +72,70 @@ impl Animation {
             elements: elements,
             totaltime: totaltime,
         }
+    }
+
+    pub fn get_element_start_time(&self, elementnumber: usize) -> i32 {
+        self.elements[elementnumber].start_tick
+    }
+
+    pub fn get_next_element(&self, elementnumber: usize) ->  Option<AnimationElement> {
+        if elementnumber >= self.elements.len() {
+            return None;
+        }
+
+        let next_element_number = elementnumber + 1;
+
+        if next_element_number < self.elements.len() {
+            return Some(self.elements[next_element_number]);
+        }
+
+        Some(self.elements[self.loopstart])
+    }
+
+    pub fn get_element_from_time(&self, time: i32) -> Result<AnimationElement, DataError> {
+        if time < 0 {
+            return Err(DataError::new(format!("Invalid animation time: {}", time)));
+        }
+
+        let mut element_option = Some(self.elements[0]);
+        let mut current_time = time;
+
+        while let Some(element) = element_option {
+            if element.gameticks == -1 {
+                return Ok(element);
+            }
+
+            current_time -= element.gameticks;
+
+            if current_time < 0 {
+                return Ok(element);
+            }
+
+            element_option = self.get_next_element(element.id);
+        }
+
+        Err(DataError::new(format!("Unexpected error getting element from animation time: {}", time)))
+    }
+}
+
+impl Display for AnimationElement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!(
+            "{}, {}, {}, {}, {}",
+            self.sprite_id,
+            format!("{}, {}", self.offset.x, self.offset.y),
+            self.gameticks,
+            self.flip,
+            self.blending,
+        ))
+    }
+}
+
+impl Display for Animation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!(
+            "Action {}",
+            self.number
+        ))
     }
 }

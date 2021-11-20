@@ -20,7 +20,7 @@ fn startup() {
         let animations = animation_loader.load_animations(text_file);
         let animation = animations.get(&5300).unwrap();
         for element in animation.elements.iter() {
-            godot_print!("element sprite id = {}", element.sprite_id);
+            godot_print!("{}", element);
         }
         godot_print!("animation total time = {}", animation.totaltime);
     }
