@@ -16,7 +16,7 @@ impl TextFile {
         }
     }
 
-    pub fn get_section(&self, key: &String) -> Option<TextSection> {
+    pub fn get_section(&self, key: &str) -> Option<TextSection> {
         for section in self.sections.iter() {
             if section.title.to_lowercase() == key.to_lowercase() {
                 return Some(section.clone())

@@ -1,25 +1,22 @@
 use crate::core::error::DataError;
 use crate::core::attribute_value::AttributeValue;
+use crate::core::regex::{RegEx, RegExFlags};
 use crate::io::text_file::TextFile;
 use crate::io::text_section::TextSection;
 use std::path::PathBuf;
 use gdnative::prelude::*;
-use gdnative::api::{RegEx};
 use gdnative::api::file::File;
 
 pub struct FileSystem {
-    titleregex: Ref<RegEx, Unique>,
-    parsedlineregex: Ref<RegEx, Unique>,
+    titleregex: RegEx,
+    parsedlineregex: RegEx,
 }
 
 impl FileSystem {
     #[allow(unused_must_use)]
     pub fn new() -> Self {
-        let titleregex = RegEx::new();
-        titleregex.compile(r"^\s*\[(.+?)\]\s*$");
-
-        let parsedlineregex = RegEx::new();
-        parsedlineregex.compile(r"^\s*(.+?)\s*=\s*(.+?)\s*$");
+        let titleregex = RegEx::new(r"^\s*\[(.+?)\]\s*$", RegExFlags::IgnoreCase);
+        let parsedlineregex = RegEx::new(r"^\s*(.+?)\s*=\s*(.+?)\s*$", RegExFlags::IgnoreCase);
 
         FileSystem {
             titleregex: titleregex,
@@ -27,16 +24,33 @@ impl FileSystem {
         }
     }
 
-    pub fn does_file_exist(filepath: String) -> bool {
+    pub fn does_file_exist(&self, filepath: &str) -> bool {
         let file = File::new();
         return file.file_exists(filepath);
     }
 
-    pub fn combine_paths(lhs: String, rhs: String) -> String {
+    pub fn get_path_by_refferrer(&self, name: &str, referrer: &str) -> String {
+        let mut directory = self.get_directory(referrer);
+        let mut path = self.combine_paths(&directory, name);
+
+        for _ in 0..1 {
+            if !self.does_file_exist(&path) {
+                directory = self.get_directory(&directory);
+                path = self.combine_paths(&directory, name);
+                continue;
+            }
+
+            break;
+        }
+
+        path
+    }
+
+    pub fn combine_paths(&self, lhs: &str, rhs: &str) -> String {
         return format!("{}/{}", lhs.trim_end_matches('/'), rhs.trim_start_matches('/'))
     }
 
-    pub fn get_directory(filepath: String) -> String {
+    pub fn get_directory(&self, filepath: &str) -> String {
         let mut path_buf = PathBuf::from(filepath);
         path_buf.pop();
         path_buf.to_str().unwrap().to_string()
@@ -84,7 +98,7 @@ impl FileSystem {
                 continue;
             }
 
-            if let Some(match_shared) = self.titleregex.search(line.clone(), 0, -1) {
+            if let Some(title_match) = self.titleregex.search(&line) {
                 if !sectiontitle.is_empty() {
                     sections.push(TextSection::new(
                         sectiontitle.clone(),
@@ -93,8 +107,7 @@ impl FileSystem {
                     ));
                 }
 
-                let match_unique = unsafe { match_shared.assume_unique() };
-                sectiontitle = match_unique.get_string(1).to_string();
+                sectiontitle = title_match.get_string(1).to_string();
                 sectionlines = Vec::new();
                 sectionparsedlines = Vec::new();
                 continue;
@@ -106,10 +119,9 @@ impl FileSystem {
 
             sectionlines.push(AttributeValue::new(&line));
 
-            if let Some(match_shared) = self.parsedlineregex.search(line.clone(), 0, -1) {
-                let match_unique = unsafe { match_shared.assume_unique() };
-                let key = match_unique.get_string(1).to_string();
-                let value = match_unique.get_string(2).to_string();
+            if let Some(line_match) = self.parsedlineregex.search(&line) {
+                let key = line_match.get_string(1).to_string();
+                let value = line_match.get_string(2).to_string();
 
                 sectionparsedlines.push((key, AttributeValue::new(&value)));
             }

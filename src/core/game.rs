@@ -1,33 +1,14 @@
+use std::rc::Rc;
+
 use gdnative::prelude::*;
 use bevy::{core::CorePlugin, prelude::*};
 
-use crate::{animations::animation_loader::AnimationLoader, io::file_system::FileSystem};
-// use crate::io::file_system::FileSystem;
+use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::menu::menu_plugin::MenuPlugin};
 
 #[derive(NativeClass)]
 #[inherit(Node2D)]
 pub struct Game {
     app: App
-}
-
-fn startup() {
-    let fs = FileSystem::new();
-    let animation_loader = AnimationLoader::new();
-    let text_file_result = fs.open_text_file("res://data/chars/kfm/kfm.air");
-
-    if let Ok(text_file) = text_file_result {
-        godot_print!("Opened");
-        let animations = animation_loader.load_animations(text_file);
-        let animation = animations.get(&5300).unwrap();
-        for element in animation.elements.iter() {
-            godot_print!("{}", element);
-        }
-        godot_print!("animation total time = {}", animation.totaltime);
-    }
-}
-
-fn print_all() {
-    // godot_print!("print all");
 }
 
 #[methods]
@@ -36,17 +17,13 @@ impl Game {
         Game {
             app: std::mem::take(
                 &mut App::build()
+                .insert_resource(FileSystem::new())
+                .insert_resource(SpriteSystem::new())
                 .add_plugin(CorePlugin::default())
-                .add_startup_system(startup.system())
-                .add_system(print_all.system())
+                .add_plugin(MenuPlugin::default())
                 .app
             )
         }
-    }
-
-    #[export]
-    pub fn _ready(&mut self, _owner: TRef<Node2D>) {
-        self.app.update();
     }
 
     #[export]

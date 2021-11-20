@@ -1,4 +1,4 @@
-#[derive(Clone, PartialEq)]
+#[derive(Default, Clone, PartialEq)]
 pub struct AttributeValue {
     value: String,
 }
@@ -13,7 +13,7 @@ impl AttributeValue {
     }
 
     pub fn compare(&self, value: &str, index_a: usize, index_b: usize, length: usize) -> bool {
-        let value_a = self.value.to_lowercase();
+        let value_a = self.to_string().to_lowercase();
         let value_b = value.to_lowercase();
 
         value_a[index_a..(index_a + length)] == value_b[index_b..(index_b + length)]

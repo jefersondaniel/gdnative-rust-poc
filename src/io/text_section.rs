@@ -28,10 +28,10 @@ impl TextSection {
         false
     }
 
-    fn get_attribute(&self, key: &String) -> Option<&AttributeValue> {
+    pub fn get_attribute(&self, key: &str) -> Option<AttributeValue> {
         for (data_key, data_value) in self.parsedlines.iter() {
             if key.to_lowercase() == data_key.to_lowercase() {
-                return Some(data_value)
+                return Some(data_value.clone())
             }
         }
 
