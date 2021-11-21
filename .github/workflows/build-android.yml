@@ -128,6 +128,7 @@ jobs:
           KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE }}
         run: |
           sed -i "s/script_encryption_key=\"\"/script_encryption_key=\"${SCRIPT_AES256_ENCRYPTION_KEY}\"/g; s/script_export_mode=1/script_export_mode=2/g; s@keystore\/release=\"\"@keystore\/release=\"${ANDROID_KEYSTORE_PATH}\"@g; s@keystore\/release_user=\"\"@keystore\/release_user=\"${ANDROID_KEYSTORE_ALIAS}\"@g; s@keystore\/release_password=\"\"@keystore\/release_password=\"${ANDROID_KEYSTORE_PASSWORD}\"@g" export_presets.cfg
+          sed -i "s/debug/release/g" resources/game.gdnlib
           godot -e -q
           echo 'export/android/android_sdk_path = "'${ANDROID_SDK_ROOT}'"' >> ~/.config/godot/editor_settings-3.tres
           echo 'export/android/debug_keystore = "/root/debug.keystore"' >> ~/.config/godot/editor_settings-3.tres
