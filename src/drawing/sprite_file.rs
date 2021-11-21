@@ -25,18 +25,24 @@ impl SpriteFile {
 
     pub fn get_sprite(&mut self, sprite_id: &SpriteId) -> Result<SffData, DataError> {
         if !self.cache.contains_key(sprite_id) {
-            let images = sff_parser::read_images(&self.path, &[sprite_id.group])?;
-
-            for image in images.iter() {
-                let new_key = SpriteId::new(image.groupno, image.imageno);
-                self.cache.insert(new_key, image.clone());
-            }
+            self.load_sprite(sprite_id)?;
         }
 
         let sff_data = self.cache.get(sprite_id)
             .ok_or_else(|| DataError::new(format!("Image not found: {}", sprite_id)))?;
 
         Ok(sff_data.clone())
+    }
+
+    pub fn load_sprite(&mut self, sprite_id: &SpriteId) -> Result<(), DataError> {
+        let images = sff_parser::read_images(&self.path, &[sprite_id.group])?;
+
+        for image in images.iter() {
+            let new_key = SpriteId::new(image.groupno, image.imageno);
+            self.cache.insert(new_key, image.clone());
+        }
+
+        Ok(())
     }
 
     pub fn load_all_sprites(&mut self) -> Result<(), DataError> {
