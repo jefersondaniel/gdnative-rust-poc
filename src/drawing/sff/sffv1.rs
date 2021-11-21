@@ -10,13 +10,13 @@ use crate::core::error::DataError;
 use super::data::{BufferAccess, BufferReader, DataReader, FileReader};
 use super::image::{Palette, RawColor, RawImage};
 use super::pcx::read_pcx;
-use super::sff_common::{SffData, SffPal, SffMetadata, SffReference};
+use super::sff_common::{SffData, SffPal, SffMetadata};
 
 #[allow(dead_code)]
 struct FileHeader {
     signature: String, // [u8; 12],
     verhi: u8,
-    verlo: u8,
+    verlo1: u8,
     verlo2: u8,
     verlo3: u8,
     num_groups: u32,
@@ -49,7 +49,7 @@ struct FileHandler {
 fn read_file_header(reader: &mut dyn DataReader) -> FileHeader {
     let signature: String = reader.get_text(12);
     let verhi: u8 = reader.get_u8();
-    let verlo: u8 = reader.get_u8();
+    let verlo1: u8 = reader.get_u8();
     let verlo2: u8 = reader.get_u8();
     let verlo3: u8 = reader.get_u8();
     let num_groups: u32 = reader.get_u32();
@@ -63,7 +63,7 @@ fn read_file_header(reader: &mut dyn DataReader) -> FileHeader {
     FileHeader {
         signature,
         verhi,
-        verlo,
+        verlo1,
         verlo2,
         verlo3,
         num_groups,
@@ -133,11 +133,11 @@ fn open(filename: &str) -> Result<FileHandler, DataError> {
         )));
     }
 
-    if head.verhi != 0 && head.verlo != 1 && head.verlo2 != 0 && head.verlo3 != 1 {
+    if head.verhi != 0 && head.verlo1 != 1 && head.verlo2 != 0 && head.verlo3 != 1 {
         file.close();
         return Result::Err(DataError::new(format!(
             "invalid version: {}.{}.{}.{}",
-            head.verhi, head.verlo, head.verlo2, head.verlo3
+            head.verhi, head.verlo1, head.verlo2, head.verlo3
         )));
     }
 
@@ -157,33 +157,15 @@ pub fn read_metadata(filename: &str) -> Result<SffMetadata, DataError> {
     let handler = open_result.expect("Invalid open result");
     let file = handler.file;
     let head = handler.head;
-    let mut reader = FileReader::new(&file);
-    let mut counter = 0;
-    let mut images: Vec<SffReference> = Vec::new();
-    let mut actual_offset = head.first_offset;
-
-    while !file.eof_reached() {
-        counter += 1;
-
-        if counter >= head.num_images as i32 {
-            break;
-        }
-
-        file.seek(actual_offset as i64);
-
-        let spr = read_sprite_header(&mut reader);
-
-        images.push(SffReference {
-            groupno: spr.groupno,
-            imageno: spr.imageno
-        });
-
-        actual_offset = spr.offset_next_sprite;
-    }
 
     file.close();
 
-    Result::Ok(SffMetadata { major_version: 1, images })
+    Result::Ok(SffMetadata {
+        verlo3: head.verlo3,
+        verlo2: head.verlo2,
+        verlo1: head.verlo1,
+        verhi: head.verhi,
+    })
 }
 
 pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataError> {
@@ -225,7 +207,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
     }
 
     let mut pallete_ref: Vec<u8> = Vec::new();
-    let mut actual_palindex: i32 = 0;
+    let mut actual_palindex: i16 = 0;
     let mut shared_image: Vec<usize> = Vec::new();
     let mut ind_image: Vec<usize> = Vec::new();
     let mut sffdata: HashMap<i32, SffData> = HashMap::new();
@@ -275,7 +257,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
 
             if !spr.is_shared {
                 ind_image.push(counter as usize);
-                actual_palindex = paldata.len() as i32;
+                actual_palindex = paldata.len() as i16;
                 pallete_ref = tmp_arr.clone();
                 pallete_ref = pallete_ref.right(768);
                 tmp_arr.extend(pallete_ref.to_vec());
@@ -293,7 +275,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
                     for (k, item) in paldata.iter().enumerate() {
                         if sffpal.pal.equal(&item.pal) {
                             checked = true;
-                            actual_palindex = k as i32;
+                            actual_palindex = k as i16;
                             break;
                         }
                     }
@@ -337,10 +319,10 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
             }
         }
 
-        sffitem.groupno = spr.groupno as i32;
-        sffitem.imageno = spr.imageno as i32;
-        sffitem.x = spr.x as i32;
-        sffitem.y = spr.y as i32;
+        sffitem.groupno = spr.groupno;
+        sffitem.imageno = spr.imageno;
+        sffitem.x = spr.x;
+        sffitem.y = spr.y;
         sffitem.linked = -1;
 
         if head.is_shared && spr.is_shared {
@@ -420,8 +402,8 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
             if k > 0 {
                 for (_, item) in sffdata.iter_mut() {
                     if item.palindex == 0 {
-                        item.palindex = k as i32;
-                    } else if item.palindex == k as i32 {
+                        item.palindex = k as i16;
+                    } else if item.palindex == k as i16 {
                         item.palindex = 0;
                     }
                 }

@@ -1,6 +1,8 @@
-use crate::{core::error::DataError, io::file_system::FileSystem};
+use std::rc::Rc;
 
-use super::font::Font;
+use crate::{core::error::DataError};
+
+use super::{font::Font, sff::{image::Palette, sff_parser}, sprite_file::SpriteFile};
 
 pub struct SpriteSystem {
 
@@ -11,7 +13,19 @@ impl SpriteSystem {
         SpriteSystem { }
     }
 
-    pub fn load_font(&self, file_system: &FileSystem, path: &str) -> Result<Font, DataError> {
+    pub fn load_font(&self, path: &str) -> Result<Font, DataError> {
         Ok(Font { })
+    }
+
+    pub fn get_sprite_file(&self, path: &str) -> Result<SpriteFile, DataError> {
+        SpriteFile::load(path)
+    }
+
+    pub fn load_palettes(&self, path: &str) -> Result<Vec<Rc<Palette>>, DataError> {
+        sff_parser::read_palettes(&path)
+    }
+
+    pub fn load_palette(&self, path: &str) -> Result<Rc<Palette>, DataError> {
+        sff_parser::read_palette(&path)
     }
 }

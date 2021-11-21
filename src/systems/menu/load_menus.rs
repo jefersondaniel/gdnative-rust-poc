@@ -50,7 +50,7 @@ fn load_menu_data(
 
     for i in 1..10 as usize {
         if let Some(path) = files.get_attribute(&format!("font{}", i)) {
-            let font = sprite_system.load_font(&file_system, &path.to_string())?;
+            let font = sprite_system.load_font(&path.to_string())?;
             font_hash_map.insert(i, font);
         } else {
             break;

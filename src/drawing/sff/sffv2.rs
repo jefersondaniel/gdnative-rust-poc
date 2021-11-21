@@ -4,7 +4,7 @@ use super::data::{BufferReader, DataReader, FileReader};
 use super::image::{Palette, RawColor, RawImage};
 use super::lz5::decode_lz5;
 use super::rle5::{decode_rle5, decode_rle8};
-use super::sff_common::{SffData, SffPal, SffMetadata, SffReference};
+use super::sff_common::{SffData, SffPal, SffMetadata};
 use gdnative::Ref;
 use gdnative::api::file::File;
 use gdnative::prelude::Unique;
@@ -191,23 +191,15 @@ pub fn read_metadata(filename: &str) -> Result<SffMetadata, DataError> {
     let handler = open_result.expect("Invalid open result");
     let file = handler.file;
     let head = handler.head;
-    let mut reader = FileReader::new(&file);
-    let mut images: Vec<SffReference> = Vec::new();
-
-    file.seek(head.first_sprnode_offset as i64);
-
-    for _ in 0..head.total_frames {
-        let sprite_header = SpriteHeader::read(&mut reader);
-
-        images.push(SffReference {
-            groupno: sprite_header.groupno,
-            imageno: sprite_header.imageno
-        });
-    }
 
     file.close();
 
-    Result::Ok(SffMetadata { major_version: 2, images })
+    Result::Ok(SffMetadata {
+        verlo3: head.verlo3,
+        verlo2: head.verlo2,
+        verlo1: head.verlo1,
+        verhi: head.verhi,
+    })
 }
 
 pub fn read_palettes(filename: &str) -> Result<Vec<Rc<Palette>>, DataError> {
@@ -373,11 +365,11 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
         }
 
         sffdata.insert(counter as i32, SffData {
-            groupno: sprite.groupno as i32,
-            imageno: sprite.imageno as i32,
-            x: sprite.x as i32,
-            y: sprite.y as i32,
-            palindex: sprite.palindex as i32,
+            groupno: sprite.groupno,
+            imageno: sprite.imageno,
+            x: sprite.x,
+            y: sprite.y,
+            palindex: sprite.palindex,
             image,
             linked,
         });

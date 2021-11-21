@@ -265,7 +265,7 @@ impl AnimationLoader {
         let element = AnimationElement::new(
             elementid,
             gameticks,
-            SpriteId::new(groupnumber, imagenumber),
+            SpriteId::new(groupnumber as i16, imagenumber as i16),
             Vector2::new(offset_x as f32, offset_y as f32),
             flip,
             blending,
