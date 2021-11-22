@@ -14,9 +14,20 @@ opt-level = 3
 lto = true
 
 [dependencies]
-bevy = { version = "0.5.0", default-features = false }
+# bevy_core = "0.5.0"
+# bevy_app = "0.5.0"
+# bevy_ecs = "0.5.0"
 gdnative = "0.9"
 byteorder = "1.4.3"
 enum-flags = "0.1.8"
-regex = "1"
+syn = "1.0.72"
 proc-macro2 = "1.0.26"
+# regex = "1"
+
+[patch.crates-io]
+bevy_core = { path = "/home/jeferson/Projects/Github/bevy/crates/bevy_core" }
+bevy_ecs = { path = "/home/jeferson/Projects/Github/bevy/crates/bevy_ecs" }
+bevy_app = { path = "/home/jeferson/Projects/Github/bevy/crates/bevy_app" }
+bevy_tasks = { path = "/home/jeferson/Projects/Github/bevy/crates/bevy_tasks" }
+bevy_utils = { path = "/home/jeferson/Projects/Github/bevy/crates/bevy_utils" }
+bevy_math = { path = "/home/jeferson/Projects/Github/bevy/crates/bevy_math" }

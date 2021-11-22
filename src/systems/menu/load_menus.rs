@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use gdnative::prelude::*;
 
 use crate::drawing::font::Font;

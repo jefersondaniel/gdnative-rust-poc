@@ -1,11 +1,11 @@
 use std::fmt::Display;
 
 use enum_flags::EnumFlags;
-use regex::{Captures, Regex, RegexBuilder};
+// use regex::{Captures, Regex, RegexBuilder};
 
 pub struct RegEx {
     pattern: String,
-    value: Option<Regex>
+    // value: Option<Regex>
 }
 
 #[repr(u16)]
@@ -15,8 +15,8 @@ pub enum RegExFlags {
     IgnoreCase = 0b01,
 }
 
-pub struct RegExMatch<'a> {
-    captures: Captures<'a>,
+pub struct RegExMatch {
+    // captures: Captures<'a>,
 }
 
 impl Display for RegEx {
@@ -27,35 +27,38 @@ impl Display for RegEx {
 
 impl RegEx {
     pub fn new(pattern: &str, flags: RegExFlags) -> Self {
-        let value = RegexBuilder::new(pattern)
-            .case_insensitive(flags.contains(RegExFlags::IgnoreCase))
-            .build()
-            .ok();
+        // let value = RegexBuilder::new(pattern)
+        //     .case_insensitive(flags.contains(RegExFlags::IgnoreCase))
+        //     .build()
+        //     .ok();
 
         RegEx {
             pattern: pattern.to_string(),
-            value: value
+            // value: value
         }
     }
 
-    pub fn search<'a>(&self, text: &'a str) -> Option<RegExMatch<'a>> {
-        let value = self.value.as_ref()?;
-        let captures = value.captures(&text)?;
-        let regex_match: RegExMatch = RegExMatch { captures };
+    pub fn search<'a>(&self, text: &'a str) -> Option<RegExMatch> {
+        // let value = self.value.as_ref()?;
+        // let captures = value.captures(&text)?;
+        // let regex_match: RegExMatch = RegExMatch { captures };
 
-        Some(regex_match)
+        // Some(regex_match)
+        None
     }
 
     pub fn split<'a>(&self, text: &'a str) -> Option<Vec<&'a str>> {
-        let value = self.value.as_ref()?;
+        // let value = self.value.as_ref()?;
 
-        Some(value.split(text).collect())
+        // Some(value.split(text).collect())
+        None
     }
 }
 
-impl RegExMatch<'_> {
+impl RegExMatch {
     pub fn get_string(&self, group: usize) -> String {
-        self.captures.get(group).map_or("".to_string(), |m| m.as_str().to_string())
+        // self.captures.get(group).map_or("".to_string(), |m| m.as_str().to_string())
+        "".to_string()
     }
 
     pub fn get_i32(&self, group: usize) -> Option<i32> {
