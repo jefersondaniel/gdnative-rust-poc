@@ -1,4 +1,5 @@
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
+use bevy_app::{AppBuilder, Plugin};
 
 use super::load_menus::load_menus;
 

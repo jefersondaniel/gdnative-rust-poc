@@ -1,7 +1,6 @@
-use std::rc::Rc;
-
+use bevy_app::App;
+use bevy_core::CorePlugin;
 use gdnative::prelude::*;
-use bevy::{core::CorePlugin, prelude::*};
 
 use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::menu::menu_plugin::MenuPlugin};
 
