@@ -28,3 +28,7 @@ impl MenuData {
         }
     }
 }
+
+// impl GetTypeRegistration for Menu {
+
+// }

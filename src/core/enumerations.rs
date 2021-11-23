@@ -92,8 +92,26 @@ pub enum BackgroundLayer { Front, Back }
 #[derive(Copy, Clone, PartialEq)]
 pub enum NumberType { None, Int, Float }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(EnumFlags, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PrintJustification { Left, Right, Center }
+
+impl Default for PrintJustification {
+    fn default() -> Self { PrintJustification::Center }
+}
+
+impl From<i16> for PrintJustification {
+    fn from(just: i16) -> PrintJustification {
+        let mut justification = PrintJustification::Center;
+
+        if just > 0 {
+            justification = PrintJustification::Left
+        } else if just < 0 {
+            justification = PrintJustification::Right;
+        }
+
+        return justification;
+    }
+}
 
 #[repr(u16)]
 #[derive(EnumFlags, Copy, Clone, PartialEq)]

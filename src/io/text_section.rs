@@ -1,4 +1,6 @@
-use crate::core::attribute_value::AttributeValue;
+use gdnative::godot_warn;
+
+use crate::core::{attribute_value::{AttributeValue, ParseAttributeValue}, error::DataError};
 
 #[derive(Clone)]
 pub struct TextSection {
@@ -21,20 +23,49 @@ impl TextSection {
     }
 
     pub fn has_attribute(&self, key: &String) -> bool {
-        if let Some(_) = self.get_attribute(key) {
+        if let Some(_) = self.get_attribute::<AttributeValue>(key) {
             return true
         }
 
         false
     }
 
-    pub fn get_attribute(&self, key: &str) -> Option<AttributeValue> {
+    pub fn get_attribute<T: ParseAttributeValue>(&self, key: &str) -> Option<T> {
         for (data_key, data_value) in self.parsedlines.iter() {
             if key.to_lowercase() == data_key.to_lowercase() {
-                return Some(data_value.clone())
+                let result = T::parse_attribute_value(data_value.clone());
+
+                if let Err(error) = result {
+                    godot_warn!("{}", error);
+                } else {
+                    return result.ok();
+                }
+
+                break;
             }
         }
 
         None
+    }
+
+    pub fn get_attribute_or<T: ParseAttributeValue>(&self, key: &str, default: T) -> T {
+        match self.get_attribute(key) {
+            Some(value) => T::from(value),
+            None => default,
+        }
+    }
+
+    pub fn get_attribute_or_default<T: Default + ParseAttributeValue>(&self, key: &str) -> T {
+        match self.get_attribute::<T>(key) {
+            Some(value) => value,
+            None => T::default(),
+        }
+    }
+
+    pub fn get_attribute_or_fail<T: Default + ParseAttributeValue>(&self, key: &str) -> Result<T, DataError> {
+        match self.get_attribute::<T>(key) {
+            Some(value) => Ok(value),
+            None => Err(DataError::new(format!("Missing attribute: {}", key))),
+        }
     }
 }

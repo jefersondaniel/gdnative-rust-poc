@@ -1,4 +1,4 @@
-use crate::io::text_section::TextSection;
+use crate::{core::error::DataError, io::text_section::TextSection};
 
 pub struct TextFile {
     pub filepath: String,
@@ -16,13 +16,13 @@ impl TextFile {
         }
     }
 
-    pub fn get_section(&self, key: &str) -> Option<TextSection> {
+    pub fn get_section(&self, key: &str) -> Result<TextSection, DataError> {
         for section in self.sections.iter() {
             if section.title.to_lowercase() == key.to_lowercase() {
-                return Some(section.clone())
+                return Ok(section.clone())
             }
         }
 
-        None
+        Err(DataError::new(format!("Missing section: {}", key)))
     }
 }

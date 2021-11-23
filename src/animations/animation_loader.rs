@@ -81,7 +81,7 @@ impl AnimationLoader {
         let mut loadcount = 0;
 
         for line in &section.lines {
-            let line_string = String::from(line);
+            let line_string = line.to_string();
 
             if loadcount > 0 {
                 let clsn_option = self.create_clsn(line, loadtype);
@@ -103,7 +103,7 @@ impl AnimationLoader {
                         }
                     }
                 } else {
-                    godot_warn!("Could not create Clsn from line: {}", String::from(line));
+                    godot_warn!("Could not create Clsn from line: {}", line.to_string());
                 }
 
                 loadcount = loadcount - 1;
@@ -193,7 +193,7 @@ impl AnimationLoader {
             return None
         }
 
-        let line_string = String::from(line);
+        let line_string = line.to_string();
         let clsn_match = self.clsnlineregex.search(&line_string)?;
 
         let mut x1 = clsn_match.get_i32(3)?;
