@@ -10,6 +10,7 @@ use crate::core::error::DataError;
 use crate::core::sprite_id::SpriteId;
 use crate::core::{enumerations::ClsnType};
 use crate::core::regex::{RegEx, RegExFlags};
+use crate::io::file_system::FileSystem;
 use crate::io::text_file::TextFile;
 use crate::io::text_section::TextSection;
 
@@ -37,7 +38,9 @@ impl AnimationLoader {
         }
     }
 
-    pub fn load_animations(&self, text_file: TextFile) -> HashMap<i32, Animation> {
+    pub fn load_animations(&self, path: &str) -> Result<HashMap<i32, Animation>, DataError> {
+        let file_system = FileSystem::new();
+        let text_file = file_system.open_text_file(path)?;
         let mut animations = HashMap::new();
 
         for section in text_file.sections.iter() {
@@ -59,7 +62,7 @@ impl AnimationLoader {
             }
         }
 
-        animations
+        Ok(animations)
     }
 
     fn create_animation(&self, section: &TextSection) -> Result<Animation, DataError> {

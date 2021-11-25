@@ -1,12 +1,13 @@
 use gdnative::prelude::*;
 use crate::core::game::Game;
 
-mod core;
-mod io;
-mod drawing;
 mod animations;
-mod systems;
+mod backgrounds;
+mod core;
+mod drawing;
+mod io;
 mod menus;
+mod systems;
 
 fn init(handle: InitHandle) {
   handle.add_class::<Game>();

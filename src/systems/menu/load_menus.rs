@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use bevy_ecs::prelude::*;
 
+use crate::animations::animation_loader::AnimationLoader;
+use crate::animations::animation_manager::AnimationManager;
 use crate::drawing::font::Font;
 use crate::drawing::font_map::FontMap;
 use crate::menus::menu_data::MenuData;
@@ -13,9 +15,20 @@ pub fn load_menus(
     file_system: Res<FileSystem>,
     sprite_system: Res<SpriteSystem>
 ) -> Result<(), DataError> {
+    let animation_loader = AnimationLoader::new();
+
     let text_file = load_text_file(&file_system)?;
     let menu_data = load_menu_data(&file_system, &sprite_system, &text_file)?;
-    let title_screen = TitleScreen::build(&text_file.get_section("Title Info")?)?;
+    let sprite_file = sprite_system.get_sprite_file(&menu_data.sprite_path)?;
+    let animations = animation_loader.load_animations(&menu_data.anim_path)?;
+    let animation_manager = AnimationManager::new(&menu_data.anim_path, animations);
+
+    // Screens
+    let title_screen = TitleScreen::build(
+        &text_file,
+        &sprite_file,
+        &animation_manager
+    )?;
 
     commands.insert_resource(menu_data);
     commands.insert_resource(title_screen);

@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use super::{attribute_value::{AttributeValue, ParseAttributeValue}, error::DataError};
+
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SpriteId {
     pub group: i16,
@@ -15,6 +17,22 @@ impl SpriteId {
 impl From<&SpriteId> for String {
     fn from(sprite_id: &SpriteId) -> String {
         format!("{}, {}", sprite_id.group, sprite_id.image)
+    }
+}
+
+impl ParseAttributeValue for SpriteId {
+    fn parse_attribute_value(value: AttributeValue) -> Result<SpriteId, DataError> {
+        let pieces  = value.split_values();
+        let error = DataError::new(format!("Invalid sprite id format: {}", value.to_string()));
+
+        if pieces.len() == 2 {
+            let x = pieces[0].parse::<i16>().map_err(|_| error.clone())?;
+            let y = pieces[0].parse::<i16>().map_err(|_| error.clone())?;
+
+            return Ok(SpriteId::new(x, y));
+        }
+
+        Err(error)
     }
 }
 

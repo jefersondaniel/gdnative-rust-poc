@@ -175,7 +175,7 @@ pub enum ProjectileDataType { None, Hit, Guarded, Cancel }
 #[derive(Copy, Clone, PartialEq)]
 pub enum PauseState { Unpaused, Paused, PauseStep }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MainMenuOption { Arcade = 0, Versus = 1, TeamArcade = 2, TeamVersus = 3, TeamCoop = 4, Survival = 5, SurvivalCoop = 6, Training = 7, Watch = 8, Options = 9, Quit = 10 }
 
 #[derive(Copy, Clone, PartialEq)]

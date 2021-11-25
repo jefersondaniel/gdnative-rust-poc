@@ -7,22 +7,22 @@ use crate::core::error::DataError;
 use super::animation::{ Animation, AnimationElement };
 
 #[derive(Clone)]
-struct  AnimationManager {
+pub struct  AnimationManager {
     pub filepath: String,
     pub foreignanimation: bool,
     pub currentanimation: Option<Animation>,
     pub currentelement: Option<AnimationElement>,
     pub finishedanimation: bool,
     pub animationtime: i32,
-    animations: HashMap<usize, Animation>,
+    animations: HashMap<i32, Animation>,
     animationinloop: bool,
     elementswitchtime: i32,
 }
 
 impl AnimationManager {
-    pub fn new(filepath: String, animations: HashMap<usize, Animation>) -> Self {
+    pub fn new(filepath: &str, animations: HashMap<i32, Animation>) -> Self {
         AnimationManager {
-            filepath,
+            filepath: filepath.to_string(),
             foreignanimation: false,
             currentanimation: None,
             currentelement: None,
@@ -34,11 +34,11 @@ impl AnimationManager {
         }
     }
 
-    pub fn has_animation(&self, number: usize) -> bool {
+    pub fn has_animation(&self, number: i32) -> bool {
         self.animations.contains_key(&number)
     }
 
-    pub fn set_local_animation(&mut self, animationnumber: usize, elementnumber: usize) -> Result<(), DataError> {
+    pub fn set_local_animation(&mut self, animationnumber: i32, elementnumber: usize) -> Result<(), DataError> {
         let animation = self.animations.get(&animationnumber)
             .ok_or_else(|| DataError::new(format!("Animation not found: {}", animationnumber)))?
             .clone();
@@ -53,7 +53,12 @@ impl AnimationManager {
         Ok(())
     }
 
-    pub fn set_foreign_animation(&mut self, manager: AnimationManager, animationnumber: usize, elementnumber: usize) -> Result<(), DataError>  {
+    pub fn set_foreign_animation(
+        &mut self,
+        manager: AnimationManager,
+        animationnumber: i32,
+        elementnumber: usize
+    ) -> Result<(), DataError>  {
         let animation = manager.animations.get(&animationnumber)
             .ok_or_else(|| DataError::new(format!("Foreign animation not found: {}", animationnumber)))?
             .clone();

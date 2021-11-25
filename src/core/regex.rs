@@ -46,6 +46,14 @@ impl RegEx {
         Some(regex_match)
     }
 
+    pub fn is_match<'a>(&self, text: &'a str) -> bool {
+        if let Some(value) = self.value.as_ref() {
+            return value.is_match(&text);
+        }
+
+        false
+    }
+
     pub fn split<'a>(&self, text: &'a str) -> Option<Vec<&'a str>> {
         let value = self.value.as_ref()?;
 
