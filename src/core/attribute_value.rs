@@ -1,6 +1,6 @@
-use gdnative::{core_types::Vector2};
+use gdnative::{core_types::{Point2, Rect2, Size2, Vector2}};
 
-use super::error::DataError;
+use super::{enumerations::BackgroundLayer, error::DataError};
 
 #[derive(Default, Clone, PartialEq)]
 pub struct AttributeValue {
@@ -114,11 +114,50 @@ impl ParseAttributeValue for Vector2 {
 
         if pieces.len() == 2 {
             let x = pieces[0].parse::<i32>().map_err(|_| error.clone())?;
-            let y = pieces[0].parse::<i32>().map_err(|_| error.clone())?;
+            let y = pieces[1].parse::<i32>().map_err(|_| error.clone())?;
 
             return Ok(Vector2::new(x as f32, y as f32));
         }
 
         Err(error)
+    }
+}
+
+impl ParseAttributeValue for Rect2 {
+    fn parse_attribute_value(value: AttributeValue) -> Result<Rect2, DataError> {
+        let pieces  = value.split_values();
+        let error = DataError::new(format!("Invalid vector: {}", value.to_string()));
+
+        if pieces.len() > 3 {
+            let x1 = pieces[0].parse::<i32>().map_err(|_| error.clone())?;
+            let y1 = pieces[1].parse::<i32>().map_err(|_| error.clone())?;
+            let x2 = pieces[2].parse::<i32>().map_err(|_| error.clone())?;
+            let y2 = pieces[3].parse::<i32>().map_err(|_| error.clone())?;
+
+            return Ok(
+                Rect2::new(
+                    Point2::new(x1 as f32, y1 as f32),
+                    Size2::new((x2 - x1) as f32, (y2 - y1) as f32),
+                )
+            );
+        }
+
+        Err(error)
+    }
+}
+
+impl ParseAttributeValue for BackgroundLayer {
+    fn parse_attribute_value(value: AttributeValue) -> Result<BackgroundLayer, DataError> {
+        let value  = value.to_string();
+
+        if value.trim() == "0" {
+            return Ok(BackgroundLayer::Back);
+        }
+
+        if value.trim() == "1" {
+            return Ok(BackgroundLayer::Front);
+        }
+
+        Err(DataError::new(format!("Invalid layer: {}", value)))
     }
 }

@@ -33,7 +33,7 @@ impl ParseAttributeValue for SoundId {
 
         if pieces.len() == 2 {
             let x = pieces[0].parse::<i16>().map_err(|_| error.clone())?;
-            let y = pieces[0].parse::<i16>().map_err(|_| error.clone())?;
+            let y = pieces[1].parse::<i16>().map_err(|_| error.clone())?;
 
             return Ok(SoundId::new(x, y));
         }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use gdnative::core_types::Vector2;
 
-use crate::{animations::animation_manager::AnimationManager, core::{enumerations::MainMenuOption, error::DataError, sound_id::SoundId}, drawing::{print_data::PrintData, sprite_file::SpriteFile}, io::{text_file::TextFile, text_section::TextSection}};
+use crate::{animations::animation_manager::AnimationManager, core::{configuration::Configuration, enumerations::MainMenuOption, error::DataError, sound_id::SoundId}, drawing::{print_data::PrintData, sprite_file::SpriteFile}, io::{text_file::TextFile, text_section::TextSection}};
 
 use super::non_combat_screen::NonCombatScreen;
 
@@ -24,14 +24,16 @@ pub struct TitleScreen {
 
 impl TitleScreen {
     pub fn build(
+        configuration: &Configuration,
         textfile: &TextFile,
-        sprite_file: &SpriteFile,
+        sprite_file: &mut SpriteFile,
         animation_manager: &AnimationManager,
     ) -> Result<TitleScreen, DataError> {
         let textsection = textfile.get_section("Title Info")?;
         let marginy: Vector2 = textsection.get_attribute_or_default("menu.window.margins.y");
         let non_combat_screen = NonCombatScreen::build(
             "Title",
+            configuration,
             &textsection,
             textfile,
             sprite_file,

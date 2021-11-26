@@ -12,6 +12,8 @@ impl SpriteId {
     pub fn new(group: i16, image: i16) -> Self {
         SpriteId { group: group, image: image }
     }
+
+    pub fn invalid() -> Self { SpriteId::new(i16::MIN, i16::MIN) }
 }
 
 impl From<&SpriteId> for String {
@@ -27,7 +29,7 @@ impl ParseAttributeValue for SpriteId {
 
         if pieces.len() == 2 {
             let x = pieces[0].parse::<i16>().map_err(|_| error.clone())?;
-            let y = pieces[0].parse::<i16>().map_err(|_| error.clone())?;
+            let y = pieces[1].parse::<i16>().map_err(|_| error.clone())?;
 
             return Ok(SpriteId::new(x, y));
         }

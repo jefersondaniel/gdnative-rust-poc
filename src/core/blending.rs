@@ -2,9 +2,9 @@ use std::fmt::Display;
 
 use gdnative::godot_warn;
 
-use crate::core::regex::RegExFlags;
+use crate::core::{error::DataError, regex::RegExFlags};
 
-use super::{attribute_value::AttributeValue, enumerations::BlendType, regex::RegEx};
+use super::{attribute_value::{AttributeValue, ParseAttributeValue}, enumerations::BlendType, regex::RegEx};
 
 #[derive(Default, Copy, Clone, PartialEq)]
 pub struct Blending {
@@ -27,50 +27,64 @@ impl Blending {
     }
 }
 
-impl From<&str> for Blending {
-    fn from(raw_text: &str) -> Blending {
-        let text = raw_text.to_string().trim().to_lowercase();
+fn parse_blending(raw_text: &str) -> Result<Blending, DataError> {
+    let text = raw_text.to_string().trim().to_lowercase();
 
-        if text.is_empty() || "none" == text {
-            return Blending::default();
-        }
+    if text.is_empty() || "none" == text {
+        return Ok(Blending::default());
+    }
 
-        if text == "addalpha" {
-            return Blending::new(BlendType::Add, 0, 0);
-        }
+    if text == "addalpha" {
+        return Ok(Blending::new(BlendType::Add, 0, 0));
+    }
 
-        if text == "add" || text == "a" {
-            return Blending::new(BlendType::Add, 255, 255);
-        }
+    if text == "add" || text == "a" {
+        return Ok(Blending::new(BlendType::Add, 255, 255));
+    }
 
-        if text == "add1" || text == "a1" {
-            return Blending::new(BlendType::Add, 255, 127);
-        }
+    if text == "add1" || text == "a1" {
+        return Ok(Blending::new(BlendType::Add, 255, 127));
+    }
 
-        if text == "subtract" || text == "s" || text == "sub" {
-            return Blending::new(BlendType::Subtract, 255, 255);
-        }
+    if text == "subtract" || text == "s" || text == "sub" {
+        return Ok(Blending::new(BlendType::Subtract, 255, 255));
+    }
 
-        let regex = RegEx::new(r"^as(\d+)d(\d+)$", RegExFlags::IgnoreCase);
+    let regex = RegEx::new(r"^as(\d+)d(\d+)$", RegExFlags::IgnoreCase);
 
-        if let Some(regex_match) = regex.search(&text.to_lowercase()) {
-            let source_option = regex_match.get_u16(1);
-            let destination_option = regex_match.get_u16(2);
+    if let Some(regex_match) = regex.search(&text.to_lowercase()) {
+        let source_option = regex_match.get_u16(1);
+        let destination_option = regex_match.get_u16(2);
 
-            if let Some(source) = source_option {
-                if let Some(destination) = destination_option {
-                    return Blending::new(
-                        BlendType::Add,
-                        source as u8,
-                        destination as u8
-                    );
-                }
+        if let Some(source) = source_option {
+            if let Some(destination) = destination_option {
+                return Ok(Blending::new(
+                    BlendType::Add,
+                    source as u8,
+                    destination as u8
+                ));
             }
         }
+    }
 
-        godot_warn!("Invalid blending format: {}", text);
+    Err(DataError::new(format!("Invalid blending format: {}", text)))
+}
 
-        Blending::default()
+impl From<&str> for Blending {
+    fn from(raw_text: &str) -> Blending {
+        match parse_blending(raw_text) {
+            Ok(blending) => blending,
+            Err(error) => {
+                godot_warn!("{}", error);
+                Blending::default()
+            }
+        }
+    }
+}
+
+impl ParseAttributeValue for Blending {
+    fn parse_attribute_value(value: AttributeValue) -> Result<Blending, DataError> {
+        parse_blending(&value.to_string())
     }
 }
 

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, sync::Arc};
 
 use gdnative::{api::{VisualServer, visual_server::TextureFlags}, core_types::{Rid, Size2, Vector2}};
 
@@ -17,7 +17,7 @@ impl TextureRef {
         sff_data: SffData,
         palette: Option<Rc<Palette>>,
         flags: TextureFlags,
-    ) -> Result<Rc<Self>, DataError> {
+    ) -> Result<Arc<Self>, DataError> {
         let mut raw_image = sff_data.image.borrow().clone();
 
         if let Some(palette_rc) = palette {
@@ -28,7 +28,7 @@ impl TextureRef {
             }
         }
 
-        let singleton = unsafe { VisualServer::godot_singleton() };
+        gdnative::godot_print!("before create image");
         let image = raw_image.create_image();
         let offset = Vector2::new(
             sff_data.x as f32,
@@ -38,9 +38,12 @@ impl TextureRef {
             image.get_width() as f32,
             image.get_height() as f32
         );
+        gdnative::godot_print!("before create texture");
+        let singleton = unsafe { VisualServer::godot_singleton() };
         let rid = singleton.texture_create_from_image(image, i64::from(flags));
+        gdnative::godot_print!("after create texture");
 
-        Ok(Rc::new(TextureRef {
+        Ok(Arc::new(TextureRef {
             rid: rid,
             offset,
             size

@@ -7,3 +7,4 @@ pub mod blending;
 pub mod regex;
 pub mod constants;
 pub mod sound_id;
+pub mod configuration;

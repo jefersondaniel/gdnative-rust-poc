@@ -1,47 +1,49 @@
-use crate::{animations::animation_manager::AnimationManager, core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_file::SpriteFile, texture_ref::TextureRef}, io::text_section::TextSection};
+use crate::{animations::animation_manager::AnimationManager, core::{configuration::Configuration, error::DataError, sprite_id::SpriteId}, drawing::{sprite_file::SpriteFile, texture_ref::TextureRef}, io::text_section::TextSection};
 
-use super::background_type::BackgroundType;
-
-pub struct StaticBackground {
-    spriteid: SpriteId,
-    sprite: TextureRef,
-}
+use super::{background_type::BackgroundType, static_background::StaticBackground};
 
 pub enum Background {
-    None
+    None,
+    Static(StaticBackground),
 }
 
 pub fn build_background(
-    section: &TextSection,
-    sprite_file: &SpriteFile,
+    configuration: &Configuration,
+    textsection: &TextSection,
+    sprite_file: &mut SpriteFile,
     animation_manager: &AnimationManager
 ) -> Result<Background, DataError> {
-    let background_type: BackgroundType = section.get_attribute_or_default("type");
+    let background_type: BackgroundType = textsection.get_attribute_or_default("type");
 
     match background_type {
-        BackgroundType::Static => build_static_background(section, sprite_file),
-        BackgroundType::Parallax => build_parallax_background(section, sprite_file),
-        BackgroundType::Animated => build_animated_background(section, sprite_file, animation_manager),
+        BackgroundType::Static => build_static_background(configuration, textsection, sprite_file),
+        BackgroundType::Parallax => build_parallax_background(textsection, sprite_file),
+        BackgroundType::Animated => build_animated_background(textsection, sprite_file, animation_manager),
         BackgroundType::None => Ok(Background::None),
     }
 }
 
 fn build_static_background(
-    section: &TextSection,
-    sprite_file: &SpriteFile
+    configuration: &Configuration,
+    textsection: &TextSection,
+    sprite_file: &mut SpriteFile
 ) -> Result<Background, DataError> {
-    Ok(Background::None)
+    Ok(Background::Static(StaticBackground::build(
+        configuration,
+        textsection,
+        sprite_file
+    )?))
 }
 
 fn build_parallax_background(
-    section: &TextSection,
+    textsection: &TextSection,
     sprite_file: &SpriteFile
 ) -> Result<Background, DataError> {
     Ok(Background::None)
 }
 
 fn build_animated_background(
-    section: &TextSection,
+    textsection: &TextSection,
     sprite_file: &SpriteFile,
     animation_manager: &AnimationManager
 ) -> Result<Background, DataError> {
