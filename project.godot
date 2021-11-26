@@ -142,4 +142,5 @@ P2_s={
 
 [rendering]
 
+threads/thread_model=2
 environment/default_environment="res://resources/default_env.tres"
