@@ -1,4 +1,4 @@
-use crate::{animations::animation_manager::AnimationManager, core::{configuration::Configuration, error::DataError, sprite_id::SpriteId}, drawing::{sprite_file::SpriteFile, texture_ref::TextureRef}, io::text_section::TextSection};
+use crate::{animations::animation_manager::AnimationManager, core::{configuration::Configuration, error::DataError}, drawing::{sprite_file::SpriteFile}, io::text_section::TextSection};
 
 use super::{background_type::BackgroundType, static_background::StaticBackground};
 

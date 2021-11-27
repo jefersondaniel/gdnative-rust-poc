@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::*;
 use bevy_app::{AppBuilder, Plugin};
 
-use crate::{menus::menu_data::MenuData, systems::log::handle_error};
+use crate::{systems::log::handle_error};
 
 use super::load_menus::load_menus;
 
