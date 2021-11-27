@@ -55,14 +55,6 @@ impl SffData {
         }
 
         let image = raw_image.create_image();
-        let offset = Point2::new(
-            self.x as f32,
-            self.y as f32
-        );
-        let size = Size2::new(
-            image.get_width() as f32,
-            image.get_height() as f32
-        );
 
         Ok(Texture::allocate(
             image,

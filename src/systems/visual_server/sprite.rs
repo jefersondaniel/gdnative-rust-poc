@@ -12,7 +12,7 @@ use super::{root_node::RootNode, texture::Texture, transform::Transform};
 pub struct Sprite {
     pub size: Size2,
     pub offset: Point2,
-    pub flip_x: bool,
+    pub flip_v: bool,
     pub flip_h: bool,
 }
 
@@ -77,18 +77,34 @@ fn update_canvas_item(
 
         gdnative::godot_print!("update canvas item: {}", rid.get_id());
 
+        let src_rect = Rect2::new(
+            Point2::new(0.0, 0.0),
+            texture.size
+        );
+
+        let mut dst_rect = Rect2::new(
+            sprite.offset,
+            sprite.size
+        );
+
+        if sprite.flip_v {
+            dst_rect.size.height = -dst_rect.size.height;
+        }
+
+        if sprite.flip_h {
+            dst_rect.size.width = -dst_rect.size.width;
+        }
+
         visual_server.canvas_item_set_parent(rid, root_node.canvas_item_rid);
-        visual_server.canvas_item_add_texture_rect(
+        visual_server.canvas_item_add_texture_rect_region(
             rid,
-            Rect2::new(
-                sprite.offset,
-                sprite.size
-            ),
+            dst_rect,
             texture.rid,
-            false,
+            src_rect,
             Color::rgba(1.0, 1.0, 1.0, 1.0),
             false,
             Rid::new(),
+            false
         );
         visual_server.canvas_item_set_transform(rid, transform.into());
     }

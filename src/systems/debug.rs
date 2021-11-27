@@ -23,6 +23,7 @@ fn setup(
         sprite: Sprite {
             size,
             offset,
+            flip_h: true,
             ..Default::default()
         },
         ..Default::default()
@@ -32,9 +33,9 @@ fn setup(
 }
 
 fn movement(mut query: Query<(Entity, &mut Transform)>) {
-    for (_, mut transform) in query.iter_mut() {
-        transform.translation += Vector2::new(1.0, 1.0);
-    }
+    // for (_, mut transform) in query.iter_mut() {
+    //     transform.translation += Vector2::new(1.0, 1.0);
+    // }
 }
 
 #[derive(Default)]
