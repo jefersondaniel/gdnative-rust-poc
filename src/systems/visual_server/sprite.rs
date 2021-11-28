@@ -4,7 +4,7 @@ use bevy_app::{AppBuilder, Plugin};
 use bevy_ecs::prelude::*;
 use gdnative::{api::VisualServer, core_types::{Color, Point2, Rect2, Rid, Size2}};
 
-use crate::systems::visual_server::enumerations::{VisualServerLabel, VisualServerStage};
+use crate::systems::visual_server::enumerations::{VisualServerStage};
 
 use super::{root_node::RootNode, texture::Texture, transform::Transform};
 
@@ -111,16 +111,27 @@ fn update_canvas_item(
 }
 
 fn transform_canvas_item(
-    mut rid_map: ResMut<SpriteRidMap>,
-    query: Query<(Entity, &Transform), Changed<Transform>>
+    rid_map: Res<SpriteRidMap>,
+    query: Query<(Entity, &Transform), (Changed<Transform>, With<Sprite>)>
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
     for (entity, transform) in query.iter() {
         if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
-            gdnative::godot_print!("transform canvas item: {}", rid.get_id());
-
             visual_server.canvas_item_set_transform(*rid, transform.into());
+        }
+    }
+}
+
+fn remove_canvas_item(
+    rid_map: Res<SpriteRidMap>,
+    removals: RemovedComponents<Sprite>,
+) {
+    let visual_server = unsafe { VisualServer::godot_singleton() };
+
+    for entity in removals.iter() {
+        if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
+            visual_server.free_rid(*rid);
         }
     }
 }
@@ -132,7 +143,8 @@ impl Plugin for SpritePlugin {
     fn build(&self, builder: &mut AppBuilder) {
         builder
             .insert_resource(SpriteRidMap { canvas_items: HashMap::new() })
-            .add_system_to_stage(VisualServerStage::Update, update_canvas_item.system().label(VisualServerLabel::Update))
-            .add_system_to_stage(VisualServerStage::Update, transform_canvas_item.system().label(VisualServerLabel::Transform).after(VisualServerLabel::Update));
+            .add_system_to_stage(VisualServerStage::Remove, remove_canvas_item.system())
+            .add_system_to_stage(VisualServerStage::Update, update_canvas_item.system())
+            .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system());
     }
 }

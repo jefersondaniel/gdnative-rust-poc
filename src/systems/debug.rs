@@ -32,10 +32,25 @@ fn setup(
     Ok(())
 }
 
-fn movement(mut query: Query<(Entity, &mut Transform)>) {
-    // for (_, mut transform) in query.iter_mut() {
-    //     transform.translation += Vector2::new(1.0, 1.0);
-    // }
+#[derive(Default)]
+struct Counter(i32);
+
+fn movement(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut Transform)>,
+    mut counter: Local<Counter>
+) {
+    counter.0 = counter.0 + 1;
+
+    for (_, mut transform) in query.iter_mut() {
+        transform.translation += Vector2::new(1.0, 1.0);
+    }
+
+    if counter.0 > 100 {
+        for (entity, _) in query.iter_mut() {
+            commands.entity(entity).despawn();
+        }
+    }
 }
 
 #[derive(Default)]
