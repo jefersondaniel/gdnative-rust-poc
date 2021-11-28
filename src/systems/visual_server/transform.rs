@@ -1,4 +1,4 @@
-use gdnative::core_types::{Angle, Rotation2D, Transform2D, Vector2};
+use gdnative::core_types::{Angle, Transform2D, Vector2};
 
 pub struct Transform {
     pub translation: Vector2,

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gdnative::{Ref, api::{Image, VisualServer, visual_server::TextureFlags}, core_types::{Point2, Rid, Size2}, prelude::Unique};
+use gdnative::{Ref, api::{Image, VisualServer, visual_server::TextureFlags}, core_types::{Rid, Size2}, prelude::Unique};
 
 pub struct Texture {
     pub rid: Rid,
