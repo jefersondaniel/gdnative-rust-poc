@@ -51,7 +51,7 @@ fn update_canvas_item(
     root_node: Res<RootNode>,
     mut rid_map: ResMut<SpriteRidMap>,
     query: Query<
-        (Entity, &Sprite, &Arc<Texture>, &Transform),
+        (Entity, &Sprite, &Arc<Texture>, &Transform, &Visible),
         Or<(Changed<Sprite>, Changed<Arc<Texture>>)>
     >
 ) {
@@ -61,7 +61,8 @@ fn update_canvas_item(
         entity,
         sprite,
         texture,
-        transform
+        transform,
+        visible
     ) in query.iter() {
         let rid = match rid_map.canvas_items.get(&entity.id()) {
             Some(value) => {
@@ -107,6 +108,7 @@ fn update_canvas_item(
             false
         );
         visual_server.canvas_item_set_transform(rid, transform.into());
+        visual_server.canvas_item_set_visible(rid, visible.is_visible);
     }
 }
 
@@ -119,6 +121,19 @@ fn transform_canvas_item(
     for (entity, transform) in query.iter() {
         if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
             visual_server.canvas_item_set_transform(*rid, transform.into());
+        }
+    }
+}
+
+fn hide_canvas_item(
+    rid_map: Res<SpriteRidMap>,
+    query: Query<(Entity, &Visible), (Changed<Visible>, With<Sprite>)>
+) {
+    let visual_server = unsafe { VisualServer::godot_singleton() };
+
+    for (entity, visible) in query.iter() {
+        if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
+            visual_server.canvas_item_set_visible(*rid, visible.is_visible);
         }
     }
 }
@@ -145,6 +160,7 @@ impl Plugin for SpritePlugin {
             .insert_resource(SpriteRidMap { canvas_items: HashMap::new() })
             .add_system_to_stage(VisualServerStage::Remove, remove_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Update, update_canvas_item.system())
-            .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system());
+            .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system())
+            .add_system_to_stage(VisualServerStage::Transform, hide_canvas_item.system());
     }
 }
