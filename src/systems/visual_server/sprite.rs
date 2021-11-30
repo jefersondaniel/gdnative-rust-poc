@@ -43,13 +43,13 @@ impl Default for SpriteBundle {
     }
 }
 
-struct SpriteRidMap {
+struct RidMap {
     pub canvas_items: HashMap<u32, Rid>,
 }
 
 fn update_canvas_item(
     root_node: Res<RootNode>,
-    mut rid_map: ResMut<SpriteRidMap>,
+    mut rid_map: ResMut<RidMap>,
     query: Query<
         (Entity, &Sprite, &Arc<Texture>, &Transform, &Visible),
         Or<(Changed<Sprite>, Changed<Arc<Texture>>)>
@@ -113,7 +113,7 @@ fn update_canvas_item(
 }
 
 fn transform_canvas_item(
-    rid_map: Res<SpriteRidMap>,
+    rid_map: Res<RidMap>,
     query: Query<(Entity, &Transform), (Changed<Transform>, With<Sprite>)>
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
@@ -126,7 +126,7 @@ fn transform_canvas_item(
 }
 
 fn hide_canvas_item(
-    rid_map: Res<SpriteRidMap>,
+    rid_map: Res<RidMap>,
     query: Query<(Entity, &Visible), (Changed<Visible>, With<Sprite>)>
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
@@ -139,15 +139,21 @@ fn hide_canvas_item(
 }
 
 fn remove_canvas_item(
-    rid_map: Res<SpriteRidMap>,
+    mut rid_map: ResMut<RidMap>,
     removals: RemovedComponents<Sprite>,
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
+    let mut affected_entity_ids = Vec::new();
 
     for entity in removals.iter() {
         if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
+            affected_entity_ids.push(entity.id());
             visual_server.free_rid(*rid);
         }
+    }
+
+    for id in affected_entity_ids.iter() {
+        rid_map.canvas_items.remove(id);
     }
 }
 
@@ -157,7 +163,7 @@ pub struct SpritePlugin;
 impl Plugin for SpritePlugin {
     fn build(&self, builder: &mut AppBuilder) {
         builder
-            .insert_resource(SpriteRidMap { canvas_items: HashMap::new() })
+            .insert_resource(RidMap { canvas_items: HashMap::new() })
             .add_system_to_stage(VisualServerStage::Remove, remove_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Update, update_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system())

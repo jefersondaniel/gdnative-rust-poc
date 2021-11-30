@@ -2,12 +2,13 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::sprite::{Sprite, SpriteBundle}};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::text_plugin::{TextBundle, Text}}};
 
-use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform}};
+use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform, text::text_plugin::FontLoader}};
 
 fn setup(
     mut commands: Commands,
+    mut font_loader: ResMut<FontLoader>,
     sprite_system: Res<SpriteSystem>
 ) -> Result<(), DataError> {
     godot_print!("Start debug");
@@ -28,6 +29,19 @@ fn setup(
         },
         ..Default::default()
     });
+
+    match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
+        Ok(font) => {
+            commands.spawn_bundle(TextBundle {
+                text: Text::new("Hello World"),
+                font,
+                ..Default::default()
+            });
+        },
+        Err(error) => {
+            godot_print!("Cant load font: {}", error);
+        }
+    }
 
     Ok(())
 }
@@ -65,6 +79,6 @@ pub struct DebugPlugin;
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_startup_system(setup.system().chain(handle_error.system()));
-        app.add_system(movement.system());
+        // app.add_system(movement.system());
     }
 }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gdnative::{Ref, api::{Image, VisualServer, visual_server::TextureFlags}, core_types::{Rid, Size2}, prelude::Unique};
+use gdnative::{Ref, api::{Image, VisualServer, visual_server::TextureFlags}, core_types::{Rid, Size2, Point2}, prelude::Unique};
 
 pub struct Texture {
     pub rid: Rid,
@@ -31,9 +31,11 @@ impl Texture {
 }
 
 impl Drop for Texture {
+    #[inline]
     fn drop(&mut self) {
-        let singleton = unsafe { VisualServer::godot_singleton() };
-        singleton.free_rid(self.rid);
+        if self.rid.is_valid() {
+            let singleton = unsafe { VisualServer::godot_singleton() };
+            singleton.free_rid(self.rid);
+        }
     }
 }
-
