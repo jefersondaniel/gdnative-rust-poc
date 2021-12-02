@@ -1,7 +1,7 @@
 use std::{sync::Arc, collections::HashMap};
 
-use ab_glyph::{FontArc, FontVec, InvalidFont, Font, GlyphId};
-use gdnative::{core_types::{ByteArray, Size2}, api::{Image, visual_server::TextureFlags}};
+use ab_glyph::{FontArc, FontVec, InvalidFont, Font, GlyphId, ScaleFont};
+use gdnative::{core_types::{ByteArray, Size2, Point2, Rect2}, api::{Image, visual_server::TextureFlags}};
 
 use crate::systems::visual_server::texture::Texture;
 
@@ -10,6 +10,7 @@ use super::common::FontSpacing;
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct CacheKey(GlyphId, i32);
 
+#[derive(Clone)]
 pub struct VectorFont {
     font: FontArc,
     texture_cache: HashMap<CacheKey, Arc<Texture>>
@@ -25,32 +26,42 @@ impl VectorFont {
         Ok(VectorFont { font, texture_cache: HashMap::new() })
     }
 
-    pub fn get_spacing(&self, scale: i32) -> FontSpacing {
+    pub fn get_spacing(&self, glyph: char, scale: i32) -> FontSpacing {
+        let font = self.font.as_scaled(scale as f32);
+        let glyph_id = font.glyph_id(glyph);
+        let glyph = glyph_id.with_scale(scale as f32);
+
         FontSpacing {
-            top: 0.0,
-            bottom: 0.0,
-            character: 0.0,
-            space: 0.0,
+            h_advance: font.h_advance(glyph_id),
+            descent: font.descent(),
+            ascent: font.ascent(),
         }
     }
 
-    pub fn get_char_size(
+    pub fn get_char_rect(
         &self,
         glyph: char,
         scale: i32,
-    ) -> Size2 {
+    ) -> Rect2 {
+        let scale = scale as f32;
         let glyph_id = self.font.glyph_id(glyph);
-        let glyph = glyph_id.with_scale(scale as f32);
+        let glyph = glyph_id.with_scale(scale);
 
         if let Some(q) = self.font.outline_glyph(glyph) {
             let bounds = q.px_bounds();
             let width = bounds.width() as usize;
             let height = bounds.height() as usize;
 
-            return Size2::new(width as f32, height as f32);
+            return Rect2::new(
+                Point2::new(
+                    bounds.min.x,
+                    bounds.min.y + self.font.as_scaled(scale).height()
+                ),
+                Size2::new(width as f32, height as f32)
+            );
         }
 
-        Size2::new(0.0, 0.0)
+        Rect2::default()
     }
 
     pub fn get_texture(

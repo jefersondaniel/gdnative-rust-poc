@@ -1,6 +1,6 @@
 use crate::core::error::DataError;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Color {
     r: u8,
     g: u8,

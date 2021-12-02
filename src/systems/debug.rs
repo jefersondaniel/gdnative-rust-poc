@@ -2,9 +2,9 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::text_plugin::{TextBundle, Text}}};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment}}}};
 
-use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform, text::text_plugin::FontLoader}};
+use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform, text::font_loader::FontLoader}};
 
 fn setup(
     mut commands: Commands,
@@ -33,8 +33,16 @@ fn setup(
     match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
         Ok(font) => {
             commands.spawn_bundle(TextBundle {
-                text: Text::new("Hello World"),
-                font,
+                text: Text::new(
+                    "Hello World",
+                    TextStyle {
+                        font,
+                        font_size: 16,
+                        ..Default::default()
+                    },
+                    TextAlignment::default()
+                ),
+                transform: Transform::translation(Vector2::new(100.0, 0.0)),
                 ..Default::default()
             });
         },
