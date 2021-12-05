@@ -4,7 +4,7 @@ use gdnative::{core_types::Rect2};
 
 use crate::systems::visual_server::texture::Texture;
 
-use super::{vector_font::VectorFont, common::FontSpacing};
+use super::{vector_font::VectorFont, common::{GlyphSpacing, FontSpacing}};
 
 #[derive(Clone)]
 pub enum Font {
@@ -16,11 +16,6 @@ pub enum Font {
 
 impl Default for Font {
     fn default() -> Self { Font::None }
-}
-
-struct CharDrawing {
-    rect: Rect2,
-    current: char,
 }
 
 impl Font {
@@ -36,10 +31,19 @@ impl Font {
         }
     }
 
-    pub fn get_spacing(&self, glyph: char, scale: i32) -> FontSpacing {
+    pub fn get_glyph_spacing(&self, previous: Option<char>, current: char, scale: i32) -> GlyphSpacing {
         match self {
             Font::VectorFont { font, .. } => {
-                font.get_spacing(glyph, scale)
+                font.get_glyph_spacing(previous, current, scale)
+            },
+            Font::None => GlyphSpacing::default(),
+        }
+    }
+
+    pub fn get_font_spacing(&self, scale: i32) -> FontSpacing {
+        match self {
+            Font::VectorFont { font, .. } => {
+                font.get_font_spacing(scale)
             },
             Font::None => FontSpacing::default(),
         }

@@ -1,32 +1,40 @@
-use crate::drawing::color::Color;
+use gdnative::core_types::Color;
 
 use super::font::Font;
 
-#[derive(Copy, Clone, Default)]
-pub struct FontSpacing {
+#[derive(Debug, Copy, Clone, Default)]
+pub struct GlyphSpacing {
     pub h_advance: f32,
+    pub h_side_bearing: f32,
+    pub kern: f32,
+}
+
+#[derive(Debug, Copy, Clone, Default)]
+pub struct FontSpacing {
     pub descent: f32,
     pub ascent: f32,
+    pub line_gap: f32,
+    pub height: f32
 }
 
 #[derive(Clone, Default)]
 pub struct TextStyle {
     pub font: Font,
     pub font_size: i32,
-    pub color: Color
+    pub color: Option<Color>
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HorizontalAlign {
-    /// Leftmost character is immediately to the right of the render position.<br/>
-    /// Bounds start from the render position and advance rightwards.
     Left,
-    /// Leftmost & rightmost characters are equidistant to the render position.<br/>
-    /// Bounds start from the render position and advance equally left & right.
     Center,
-    /// Rightmost character is immetiately to the left of the render position.<br/>
-    /// Bounds start from the render position and advance leftwards.
     Right,
+}
+
+impl Default for HorizontalAlign {
+    fn default() -> Self {
+        Self::Left
+    }
 }
 
 #[derive(Clone)]

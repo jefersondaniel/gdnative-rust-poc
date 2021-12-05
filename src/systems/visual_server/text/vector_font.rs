@@ -5,7 +5,7 @@ use gdnative::{core_types::{ByteArray, Size2, Point2, Rect2}, api::{Image, visua
 
 use crate::systems::visual_server::texture::Texture;
 
-use super::common::FontSpacing;
+use super::common::{GlyphSpacing, FontSpacing};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct CacheKey(GlyphId, i32);
@@ -26,15 +26,31 @@ impl VectorFont {
         Ok(VectorFont { font, texture_cache: HashMap::new() })
     }
 
-    pub fn get_spacing(&self, glyph: char, scale: i32) -> FontSpacing {
+    pub fn get_glyph_spacing(&self, previous: Option<char>, current: char, scale: i32) -> GlyphSpacing {
         let font = self.font.as_scaled(scale as f32);
-        let glyph_id = font.glyph_id(glyph);
-        let glyph = glyph_id.with_scale(scale as f32);
+        let current_glyph_id = font.glyph_id(current);
+        let mut kern: f32 = 0f32;
+
+        if let Some(previous) = previous {
+            let previous_glyph_id = font.glyph_id(previous);
+            kern = font.kern(previous_glyph_id, current_glyph_id);
+        }
+
+        GlyphSpacing {
+            h_advance: font.h_advance(current_glyph_id),
+            h_side_bearing: font.h_side_bearing(current_glyph_id),
+            kern
+        }
+    }
+
+    pub fn get_font_spacing(&self, scale: i32) -> FontSpacing {
+        let font = self.font.as_scaled(scale as f32);
 
         FontSpacing {
-            h_advance: font.h_advance(glyph_id),
             descent: font.descent(),
             ascent: font.ascent(),
+            height: font.height(),
+            line_gap: font.line_gap(),
         }
     }
 

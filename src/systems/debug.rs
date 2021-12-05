@@ -2,7 +2,7 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment}}}};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}}};
 
 use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform, text::font_loader::FontLoader}};
 
@@ -34,15 +34,15 @@ fn setup(
         Ok(font) => {
             commands.spawn_bundle(TextBundle {
                 text: Text::new(
-                    "Hello World",
+                    "Almost before we knew it, we had left the ground.\nHello world",
                     TextStyle {
                         font,
-                        font_size: 16,
+                        font_size: 32,
                         ..Default::default()
                     },
                     TextAlignment::default()
                 ),
-                transform: Transform::translation(Vector2::new(100.0, 0.0)),
+                transform: Transform::translation(Vector2::new(100.0, 100.0)),
                 ..Default::default()
             });
         },
