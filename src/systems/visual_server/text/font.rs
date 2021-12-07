@@ -4,13 +4,15 @@ use gdnative::{core_types::Rect2};
 
 use crate::systems::visual_server::texture::Texture;
 
-use super::{vector_font::VectorFont, common::{GlyphSpacing, FontSpacing}};
+use super::{vector_font::VectorFont, common::{GlyphSpacing, FontSpacing}, bitmap_font::BitmapFont};
 
-#[derive(Clone)]
 pub enum Font {
     None,
     VectorFont {
         font: VectorFont
+    },
+    BitmapFont {
+        font: BitmapFont
     }
 }
 
@@ -27,6 +29,9 @@ impl Font {
                     scale
                 )
             },
+            Font::BitmapFont { font, .. } => {
+                font.get_char_rect(current)
+            },
             Font::None => Rect2::default()
         }
     }
@@ -36,6 +41,9 @@ impl Font {
             Font::VectorFont { font, .. } => {
                 font.get_glyph_spacing(previous, current, scale)
             },
+            Font::BitmapFont { font, .. } => {
+                font.get_glyph_spacing(current)
+            },
             Font::None => GlyphSpacing::default(),
         }
     }
@@ -44,6 +52,9 @@ impl Font {
         match self {
             Font::VectorFont { font, .. } => {
                 font.get_font_spacing(scale)
+            },
+            Font::BitmapFont { font, .. } => {
+                font.get_font_spacing()
             },
             Font::None => FontSpacing::default(),
         }
@@ -57,6 +68,9 @@ impl Font {
         match self {
             Font::VectorFont { font, .. } => {
                 font.get_texture(glyph, scale)
+            },
+            Font::BitmapFont { font, .. } => {
+                font.get_texture(glyph)
             },
             Font::None => None
         }

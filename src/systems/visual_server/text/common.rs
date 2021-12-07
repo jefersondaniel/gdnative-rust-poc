@@ -17,7 +17,6 @@ pub struct FontSpacing {
     pub height: f32
 }
 
-#[derive(Clone)]
 pub struct TextStyle {
     pub font: Font,
     pub font_size: i32,
@@ -60,7 +59,7 @@ impl Default for TextAlignment {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct Text {
     pub value: String,
     pub style: TextStyle,

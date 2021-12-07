@@ -10,7 +10,6 @@ use super::common::{GlyphSpacing, FontSpacing};
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct CacheKey(GlyphId, i32);
 
-#[derive(Clone)]
 pub struct VectorFont {
     font: FontArc,
     texture_cache: HashMap<CacheKey, Arc<Texture>>
