@@ -1,6 +1,6 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2}, godot_print};
+use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2, Color}, godot_print};
 
 use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}}};
 
@@ -38,6 +38,7 @@ fn setup(
                     TextStyle {
                         font,
                         font_size: 32,
+                        color: Color::rgba(1.0, 0.0, 0.0, 1.0),
                         ..Default::default()
                     },
                     TextAlignment::default()

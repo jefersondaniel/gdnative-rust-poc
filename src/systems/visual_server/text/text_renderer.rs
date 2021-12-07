@@ -100,7 +100,7 @@ pub fn render_text(visual_server: &VisualServer, canvas_item: Rid, text: &mut Te
                     Rect2::new(character.rect.origin + offset, character.rect.size),
                     texture.rid,
                     false,
-                    Color::rgba(1.0, 1.0, 1.0, 1.0),
+                    text.style.color,
                     false,
                     Rid::new(),
                 );

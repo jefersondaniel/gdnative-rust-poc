@@ -17,11 +17,21 @@ pub struct FontSpacing {
     pub height: f32
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct TextStyle {
     pub font: Font,
     pub font_size: i32,
-    pub color: Option<Color>
+    pub color: Color
+}
+
+impl Default for TextStyle {
+    fn default() -> Self {
+        Self {
+            font: Font::default(),
+            font_size: 14,
+            color: Color::rgba(1.0, 1.0, 1.0, 1.0)
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
