@@ -7,21 +7,11 @@ use std::path::PathBuf;
 use gdnative::prelude::*;
 use gdnative::api::file::File;
 
-pub struct FileSystem {
-    titleregex: RegEx,
-    parsedlineregex: RegEx,
-}
+pub struct FileSystem {}
 
 impl FileSystem {
-    #[allow(unused_must_use)]
     pub fn new() -> Self {
-        let titleregex = RegEx::new(r"^\s*\[(.+?)\]\s*$", RegExFlags::IgnoreCase);
-        let parsedlineregex = RegEx::new(r"^\s*(.+?)\s*=\s*(.+?)\s*$", RegExFlags::IgnoreCase);
-
-        FileSystem {
-            titleregex: titleregex,
-            parsedlineregex: parsedlineregex,
-        }
+        FileSystem {}
     }
 
     pub fn does_file_exist(&self, filepath: &str) -> bool {
@@ -79,62 +69,11 @@ impl FileSystem {
     }
 
     pub fn build_text_file(&self, file: Ref<File, Unique>) -> TextFile {
-        let mut sections: Vec<TextSection> = Vec::new();
-        let mut sectiontitle: String = "".to_string();
-        let mut sectionlines: Vec<AttributeValue> = Vec::new();
-        let mut sectionparsedlines: Vec<(String, AttributeValue)> = Vec::new();
+        let text = file.get_as_text().to_string();
 
-        while !file.eof_reached() {
-            let mut line = file.get_line().to_string();
-            line = line.trim().to_string();
-
-            if let Some(commentindex) = line.find(';') {
-                line = line[..commentindex].to_string();
-            }
-
-            line = line.trim().to_string();
-
-            if line.is_empty() {
-                continue;
-            }
-
-            if let Some(title_match) = self.titleregex.search(&line) {
-                if !sectiontitle.is_empty() {
-                    sections.push(TextSection::new(
-                        sectiontitle.clone(),
-                        sectionlines.clone(),
-                        sectionparsedlines.clone()
-                    ));
-                }
-
-                sectiontitle = title_match.get_string(1).to_string();
-                sectionlines = Vec::new();
-                sectionparsedlines = Vec::new();
-                continue;
-            }
-
-            if sectiontitle.is_empty() {
-                continue;
-            }
-
-            sectionlines.push(AttributeValue::new(&line));
-
-            if let Some(line_match) = self.parsedlineregex.search(&line) {
-                let key = line_match.get_string(1).to_string();
-                let value = line_match.get_string(2).to_string();
-
-                sectionparsedlines.push((key, AttributeValue::new(&value)));
-            }
-        }
-
-        if !sectiontitle.is_empty() {
-            sections.push(TextSection::new(
-                sectiontitle.clone(),
-                sectionlines.clone(),
-                sectionparsedlines.clone()
-            ));
-        }
-
-        TextFile::new(file.get_path().to_string(), sections)
+        TextFile::from_string(
+            file.get_path().to_string(),
+            text
+        )
     }
 }

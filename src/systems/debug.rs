@@ -19,6 +19,8 @@ fn setup(
     let size = texture.size;
     let offset = Point2::new(sff_data.x as f32, sff_data.y as f32);
 
+    let bitmap_font = sprite_system.load_font("res://data/font/f-6x9f.fnt")?;
+
     commands.spawn_bundle(SpriteBundle {
         texture,
         sprite: Sprite {
@@ -30,27 +32,40 @@ fn setup(
         ..Default::default()
     });
 
-    match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
-        Ok(font) => {
-            commands.spawn_bundle(TextBundle {
-                text: Text::new(
-                    "Almost before we knew it, we had left the ground.\nHello world",
-                    TextStyle {
-                        font,
-                        font_size: 32,
-                        color: Color::rgba(1.0, 0.0, 0.0, 1.0),
-                        ..Default::default()
-                    },
-                    TextAlignment::default()
-                ),
-                transform: Transform::translation(Vector2::new(100.0, 100.0)),
+    commands.spawn_bundle(TextBundle {
+        text: Text::new(
+            "ABC - - - 123",
+            TextStyle {
+                font: bitmap_font,
                 ..Default::default()
-            });
-        },
-        Err(error) => {
-            godot_print!("Cant load font: {}", error);
-        }
-    }
+            },
+            TextAlignment::default()
+        ),
+        transform: Transform::translation(Vector2::new(100.0, 100.0)),
+        ..Default::default()
+    });
+
+    // match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
+    //     Ok(font) => {
+    //         commands.spawn_bundle(TextBundle {
+    //             text: Text::new(
+    //                 "ABC 123",
+    //                 TextStyle {
+    //                     font,
+    //                     font_size: 32,
+    //                     color: Color::rgba(1.0, 0.0, 0.0, 1.0),
+    //                     ..Default::default()
+    //                 },
+    //                 TextAlignment::default()
+    //             ),
+    //             transform: Transform::translation(Vector2::new(100.0, 100.0)),
+    //             ..Default::default()
+    //         });
+    //     },
+    //     Err(error) => {
+    //         godot_print!("Cant load font: {}", error);
+    //     }
+    // }
 
     Ok(())
 }

@@ -1,11 +1,12 @@
-use std::sync::Arc;
+use std::{sync::Arc, collections::HashMap};
 
 use gdnative::{core_types::Rect2};
 
 use crate::systems::visual_server::texture::Texture;
 
-use super::{vector_font::VectorFont, common::{GlyphSpacing, FontSpacing}, bitmap_font::BitmapFont};
+use super::{vector_font::{VectorFont, VectorFontCacheKey}, common::{GlyphSpacing, FontSpacing}, bitmap_font::BitmapFont};
 
+#[derive(Clone)]
 pub enum Font {
     None,
     VectorFont {
@@ -21,16 +22,31 @@ impl Default for Font {
 }
 
 impl Font {
-    pub fn get_char_rect(&self, current: char, scale: i32) -> Rect2 {
+    pub fn get_char_source_rect(&self, current: char, scale: i32) -> Rect2 {
         match self {
             Font::VectorFont { font, .. } => {
-                font.get_char_rect(
+                font.get_char_source_rect(
                     current,
                     scale
                 )
             },
             Font::BitmapFont { font, .. } => {
-                font.get_char_rect(current)
+                font.get_char_source_rect(current)
+            },
+            Font::None => Rect2::default()
+        }
+    }
+
+    pub fn get_char_dest_rect(&self, current: char, scale: i32) -> Rect2 {
+        match self {
+            Font::VectorFont { font, .. } => {
+                font.get_char_dest_rect(
+                    current,
+                    scale
+                )
+            },
+            Font::BitmapFont { font, .. } => {
+                font.get_char_dest_rect(current)
             },
             Font::None => Rect2::default()
         }
@@ -61,13 +77,14 @@ impl Font {
     }
 
     pub fn get_texture(
-        &mut self,
+        &self,
         glyph: char,
         scale: i32,
+        vector_font_cache: &mut HashMap<VectorFontCacheKey, Arc<Texture>>,
     ) -> Option<Arc<Texture>> {
         match self {
             Font::VectorFont { font, .. } => {
-                font.get_texture(glyph, scale)
+                font.get_texture(glyph, scale, vector_font_cache)
             },
             Font::BitmapFont { font, .. } => {
                 font.get_texture(glyph)

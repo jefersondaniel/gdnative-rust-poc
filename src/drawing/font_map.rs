@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::font::Font;
+use crate::systems::visual_server::text::font::Font;
 
 #[derive(Clone)]
 pub struct FontMap {

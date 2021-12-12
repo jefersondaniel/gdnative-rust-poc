@@ -1,11 +1,14 @@
+use std::{collections::HashMap, sync::Arc};
+
 use gdnative::{api::VisualServer, core_types::{Rid, Rect2, Point2, Vector2, Color, Size2}};
 
-use crate::systems::visual_server::text::common::HorizontalAlign;
+use crate::systems::visual_server::{text::common::HorizontalAlign, texture::Texture};
 
-use super::common::Text;
+use super::{common::Text, vector_font::VectorFontCacheKey};
 
 struct CharDrawing {
-    rect: Rect2,
+    source_rect: Rect2,
+    dest_rect: Rect2,
     current: char,
 }
 
@@ -22,10 +25,10 @@ impl LineDrawing {
         let mut max_y: f32 = f32::MIN;
 
         for item in self.items.iter() {
-            min_x = min_x.min(item.rect.origin.x);
-            min_y = min_y.min(item.rect.origin.y);
-            max_x = max_x.max(item.rect.origin.x + item.rect.size.width);
-            max_y = max_y.min(item.rect.origin.y + item.rect.size.height);
+            min_x = min_x.min(item.dest_rect.origin.x);
+            min_y = min_y.min(item.dest_rect.origin.y);
+            max_x = max_x.max(item.dest_rect.origin.x + item.dest_rect.size.width);
+            max_y = max_y.min(item.dest_rect.origin.y + item.dest_rect.size.height);
         }
 
         Rect2::new(Point2::new(min_x, min_y), Size2::new(max_x - min_x, max_y - min_y))
@@ -33,9 +36,12 @@ impl LineDrawing {
 }
 
 
-pub fn render_text(visual_server: &VisualServer, canvas_item: Rid, text: &mut Text) {
-    gdnative::godot_print!("font draw on rid: {}", canvas_item.get_id());
-
+pub fn render_text(
+    visual_server: &VisualServer,
+    canvas_item: Rid,
+    text: &Text,
+    vector_font_cache: &mut HashMap<VectorFontCacheKey, Arc<Texture>>
+) {
     let characters: Vec<char> = text.value.chars().collect();
     let mut drawing: Vec<LineDrawing> = Vec::new();
     let mut current_line = LineDrawing::default();
@@ -54,22 +60,23 @@ pub fn render_text(visual_server: &VisualServer, canvas_item: Rid, text: &mut Te
             continue
         }
 
-        let char_rect = font.get_char_rect(*current_char, font_size);
+        let char_dest_rect = font.get_char_dest_rect(*current_char, font_size);
         let glyph_spacing = font.get_glyph_spacing(previous_char, *current_char, font_size);
 
         let position = Point2::new(
-            cursor.x + char_rect.origin.x,
-            cursor.y + char_rect.origin.y
+            cursor.x + char_dest_rect.origin.x,
+            cursor.y + char_dest_rect.origin.y
         );
         current_line.items.push(CharDrawing {
-            rect: Rect2::new(
+            source_rect: font.get_char_source_rect(*current_char, font_size),
+            dest_rect: Rect2::new(
                 position,
-                char_rect.size
+                char_dest_rect.size
             ),
             current: *current_char,
         });
         cursor.x += glyph_spacing.h_advance;
-        dimension.y = f32::max(char_rect.size.height, dimension.y);
+        dimension.y = f32::max(char_dest_rect.size.height, dimension.y);
         dimension.x = cursor.x;
         previous_char = Some(*current_char);
     }
@@ -92,17 +99,22 @@ pub fn render_text(visual_server: &VisualServer, canvas_item: Rid, text: &mut Te
         };
 
         for character in line.items.iter() {
-            let texture = text.style.font.get_texture(character.current, text.style.font_size);
+            let texture = text.style.font.get_texture(
+                character.current,
+                text.style.font_size,
+                vector_font_cache
+            );
 
             if let Some(texture) = texture {
-                visual_server.canvas_item_add_texture_rect(
+                visual_server.canvas_item_add_texture_rect_region(
                     canvas_item,
-                    Rect2::new(character.rect.origin + offset, character.rect.size),
+                    Rect2::new(character.dest_rect.origin + offset, character.dest_rect.size),
                     texture.rid,
-                    false,
+                    character.source_rect,
                     text.style.color,
                     false,
                     Rid::new(),
+                    false
                 );
             }
         }

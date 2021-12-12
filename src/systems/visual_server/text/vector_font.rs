@@ -8,11 +8,11 @@ use crate::systems::visual_server::texture::Texture;
 use super::common::{GlyphSpacing, FontSpacing};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct CacheKey(GlyphId, i32);
+pub struct VectorFontCacheKey(GlyphId, i32);
 
+#[derive(Clone)]
 pub struct VectorFont {
     font: FontArc,
-    texture_cache: HashMap<CacheKey, Arc<Texture>>
 }
 
 impl VectorFont {
@@ -22,7 +22,7 @@ impl VectorFont {
         let font = FontVec::try_from_vec(font_data)?;
         let font = FontArc::new(font);
 
-        Ok(VectorFont { font, texture_cache: HashMap::new() })
+        Ok(VectorFont { font })
     }
 
     pub fn get_glyph_spacing(&self, previous: Option<char>, current: char, scale: i32) -> GlyphSpacing {
@@ -53,7 +53,7 @@ impl VectorFont {
         }
     }
 
-    pub fn get_char_rect(
+    pub fn get_char_dest_rect(
         &self,
         glyph: char,
         scale: i32,
@@ -79,17 +79,41 @@ impl VectorFont {
         Rect2::default()
     }
 
+    pub fn get_char_source_rect(
+        &self,
+        glyph: char,
+        scale: i32,
+    ) -> Rect2 {
+        let scale = scale as f32;
+        let glyph_id = self.font.glyph_id(glyph);
+        let glyph = glyph_id.with_scale(scale);
+
+        if let Some(q) = self.font.outline_glyph(glyph) {
+            let bounds = q.px_bounds();
+            let width = bounds.width() as usize;
+            let height = bounds.height() as usize;
+
+            return Rect2::new(
+                Point2::new(0.0, 0.0),
+                Size2::new(width as f32, height as f32)
+            );
+        }
+
+        Rect2::default()
+    }
+
     pub fn get_texture(
-        &mut self,
+        &self,
         character: char,
         scale: i32,
+        texture_cache: &mut HashMap<VectorFontCacheKey, Arc<Texture>>,
     ) -> Option<Arc<Texture>> {
         let glyph_id = self.font.glyph_id(character);
         let glyph = glyph_id.with_scale(scale as f32);
-        let cache_key = CacheKey(glyph_id, scale);
+        let cache_key = VectorFontCacheKey(glyph_id, scale);
 
-        if self.texture_cache.contains_key(&cache_key) {
-            let cache_result = self.texture_cache.get(&cache_key).unwrap();
+        if texture_cache.contains_key(&cache_key) {
+            let cache_result = texture_cache.get(&cache_key).unwrap();
 
             return Some(cache_result.clone())
         }
@@ -124,7 +148,7 @@ impl VectorFont {
 
             let texture = Texture::allocate(image, TextureFlags::FLAGS_DEFAULT);
 
-            self.texture_cache.insert(cache_key, texture.clone());
+            texture_cache.insert(cache_key, texture.clone());
 
             return Some(texture)
         }

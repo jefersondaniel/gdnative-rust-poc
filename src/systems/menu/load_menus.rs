@@ -5,10 +5,10 @@ use bevy_ecs::prelude::*;
 use crate::animations::animation_loader::AnimationLoader;
 use crate::animations::animation_manager::AnimationManager;
 use crate::core::configuration::Configuration;
-use crate::drawing::font::Font;
 use crate::drawing::font_map::FontMap;
 use crate::menus::menu_data::MenuData;
 use crate::menus::title_screen::TitleScreen;
+use crate::systems::visual_server::text::font::Font;
 use crate::{core::{constants::{MUGEN_10_SYSTEM_PATH, MUGEN_11_SYSTEM_PATH}, error::DataError}, drawing::sprite_system::SpriteSystem, io::{file_system::FileSystem, text_file::TextFile}};
 
 pub fn load_menus(

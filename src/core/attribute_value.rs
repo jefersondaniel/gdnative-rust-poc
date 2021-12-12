@@ -32,11 +32,16 @@ impl AttributeValue {
     }
 
     pub fn split_values(&self) -> Vec<String> {
+        self.split_with_separator(',', true)
+    }
+
+    pub fn split_with_separator(&self, separator: char, trim: bool) -> Vec<String> {
         let text_raw = &self.value.to_string();
-        let text = text_raw.trim();
+        let text = if trim { text_raw.trim() } else { &text_raw };
         let mut result: Vec<String> = Vec::new();
-        for item in text.split(',') {
-            result.push(item.trim().to_string());
+        for raw_item in text.split(separator) {
+            let item = if trim { raw_item.trim().to_string() } else { raw_item.to_string() };
+            result.push(item);
         }
         result
     }
@@ -120,6 +125,22 @@ impl ParseAttributeValue for Vector2 {
         }
 
         Err(error)
+    }
+}
+
+impl ParseAttributeValue for Size2 {
+    fn parse_attribute_value(value: AttributeValue) -> Result<Size2, DataError> {
+        let vector = Vector2::parse_attribute_value(value)?;
+
+        Ok(Size2::new(vector.x, vector.y))
+    }
+}
+
+impl ParseAttributeValue for Point2 {
+    fn parse_attribute_value(value: AttributeValue) -> Result<Point2, DataError> {
+        let vector = Vector2::parse_attribute_value(value)?;
+
+        Ok(Point2::new(vector.x, vector.y))
     }
 }
 
