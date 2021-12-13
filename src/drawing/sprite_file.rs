@@ -34,6 +34,17 @@ impl SpriteFile {
         Ok(sff_data.clone())
     }
 
+    pub fn get_group(&mut self, group_id: i16) -> Result<Vec<SffData>, DataError> {
+        let images = sff_parser::read_images(&self.path, &[group_id])?;
+
+        for image in images.iter() {
+            let new_key = SpriteId::new(image.groupno, image.imageno);
+            self.cache.insert(new_key, image.clone());
+        }
+
+        Ok(images)
+    }
+
     pub fn load_sprite(&mut self, sprite_id: &SpriteId) -> Result<(), DataError> {
         let images = sff_parser::read_images(&self.path, &[sprite_id.group])?;
 

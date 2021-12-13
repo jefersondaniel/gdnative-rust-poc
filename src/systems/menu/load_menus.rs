@@ -6,9 +6,9 @@ use crate::animations::animation_loader::AnimationLoader;
 use crate::animations::animation_manager::AnimationManager;
 use crate::core::configuration::Configuration;
 use crate::drawing::font_map::FontMap;
+use crate::drawing::mugen_font::MugenFont;
 use crate::menus::menu_data::MenuData;
 use crate::menus::title_screen::TitleScreen;
-use crate::systems::visual_server::text::font::Font;
 use crate::{core::{constants::{MUGEN_10_SYSTEM_PATH, MUGEN_11_SYSTEM_PATH}, error::DataError}, drawing::sprite_system::SpriteSystem, io::{file_system::FileSystem, text_file::TextFile}};
 
 pub fn load_menus(
@@ -50,7 +50,7 @@ fn load_menu_data(
 
     let motif_name = info.get_attribute_or_default::<String>("name");
     let motif_author = info.get_attribute_or_default::<String>("author");
-    let mut font_hash_map = HashMap::<usize, Font>::new();
+    let mut font_hash_map = HashMap::<usize, MugenFont>::new();
 
     for i in 1..10 as usize {
         if let Some(path) = files.get_attribute::<String>(&format!("font{}", i)) {

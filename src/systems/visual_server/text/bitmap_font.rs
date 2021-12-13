@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use gdnative::core_types::{Rect2, Size2, Point2};
+use gdnative::core_types::{Rect2, Point2};
 
 use crate::systems::visual_server::texture::Texture;
 
@@ -11,6 +11,7 @@ pub struct BitmapFont {
     textures: Vec<Arc<Texture>>,
     texture_map: HashMap<char, usize>,
     rect_map: HashMap<char, Rect2>,
+    offset_map: HashMap<char, Point2>,
     spacing_map: HashMap<char, GlyphSpacing>,
     spacing: FontSpacing
 }
@@ -22,6 +23,7 @@ impl BitmapFont {
             texture_map: HashMap::new(),
             rect_map: HashMap::new(),
             spacing_map: HashMap::new(),
+            offset_map: HashMap::new(),
             spacing
         }
     }
@@ -35,11 +37,13 @@ impl BitmapFont {
         character: char,
         texture_index: usize,
         rect: Rect2,
+        offset: Point2,
         spacing: GlyphSpacing,
     ) {
         self.texture_map.insert(character, texture_index);
         self.rect_map.insert(character, rect);
         self.spacing_map.insert(character, spacing);
+        self.offset_map.insert(character, offset);
     }
 
     pub fn get_glyph_spacing(&self, current: char) -> GlyphSpacing {
@@ -61,10 +65,11 @@ impl BitmapFont {
     }
 
     pub fn get_char_dest_rect(&self, current: char) -> Rect2 {
-        let default = Rect2::default();
-        let result = *self.rect_map.get(&current).unwrap_or(&default);
+        let default_rect = Rect2::default();
+        let result = *self.rect_map.get(&current).unwrap_or(&default_rect);
+        let offset = *self.offset_map.get(&current).unwrap_or(&default_rect.origin);
 
-        Rect2::new(Point2::new(0.0, 0.0), result.size)
+        Rect2::new(offset, result.size)
     }
 
     pub fn get_texture(&self, current: char) -> Option<Arc<Texture>> {

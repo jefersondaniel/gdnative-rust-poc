@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
-use crate::systems::visual_server::text::font::Font;
+use super::mugen_font::MugenFont;
 
 #[derive(Clone)]
 pub struct FontMap {
-    map: HashMap<usize, Font>,
+    map: HashMap<usize, MugenFont>,
 }
 
 impl FontMap {
-    pub fn new(map: HashMap<usize, Font>) -> Self {
+    pub fn new(map: HashMap<usize, MugenFont>) -> Self {
         FontMap { map }
     }
 }

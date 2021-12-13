@@ -4,11 +4,10 @@ use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2,
 
 use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}}};
 
-use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform, text::font_loader::FontLoader}};
+use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform}};
 
 fn setup(
     mut commands: Commands,
-    mut font_loader: ResMut<FontLoader>,
     sprite_system: Res<SpriteSystem>
 ) -> Result<(), DataError> {
     godot_print!("Start debug");
@@ -19,7 +18,7 @@ fn setup(
     let size = texture.size;
     let offset = Point2::new(sff_data.x as f32, sff_data.y as f32);
 
-    let bitmap_font = sprite_system.load_font("res://data/font/f-6x9f.fnt")?;
+    let bitmap_font = sprite_system.load_font("res://data/font/arcade.def")?;
 
     commands.spawn_bundle(SpriteBundle {
         texture,
@@ -34,9 +33,10 @@ fn setup(
 
     commands.spawn_bundle(TextBundle {
         text: Text::new(
-            "ABC - - - 123",
+            "ABC TEST\nSecond Line",
             TextStyle {
-                font: bitmap_font,
+                font: bitmap_font.get_color_bank(1),
+                font_size: bitmap_font.size,
                 ..Default::default()
             },
             TextAlignment::default()
