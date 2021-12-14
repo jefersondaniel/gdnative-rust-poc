@@ -1,6 +1,6 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2, Color}, godot_print};
+use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2, Color, Rect2, Size2}, godot_print};
 
 use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}}};
 
@@ -26,24 +26,26 @@ fn setup(
             size,
             offset,
             flip_h: true,
+            rect: Some(Rect2::new(Point2::default(), Size2::new(50.0, 50.0))),
             ..Default::default()
         },
-        ..Default::default()
-    });
-
-    commands.spawn_bundle(TextBundle {
-        text: Text::new(
-            "ABC TEST\nSecond Line",
-            TextStyle {
-                font: bitmap_font.get_color_bank(1),
-                font_size: bitmap_font.size,
-                ..Default::default()
-            },
-            TextAlignment::default()
-        ),
         transform: Transform::translation(Vector2::new(100.0, 100.0)),
         ..Default::default()
     });
+
+    // commands.spawn_bundle(TextBundle {
+    //     text: Text::new(
+    //         "ABC TEST\nSecond Line",
+    //         TextStyle {
+    //             font: bitmap_font.get_color_bank(1),
+    //             font_size: bitmap_font.size,
+    //             ..Default::default()
+    //         },
+    //         TextAlignment::default()
+    //     ),
+    //     transform: Transform::translation(Vector2::new(100.0, 100.0)),
+    //     ..Default::default()
+    // });
 
     // match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
     //     Ok(font) => {

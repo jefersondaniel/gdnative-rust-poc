@@ -11,6 +11,7 @@ use super::{root_node::RootNode, texture::Texture, transform::Transform};
 #[derive(Default)]
 pub struct Sprite {
     pub size: Size2,
+    pub rect: Option<Rect2>,
     pub offset: Point2,
     pub flip_v: bool,
     pub flip_h: bool,
@@ -76,12 +77,10 @@ fn update_canvas_item(
             }
         };
 
-        gdnative::godot_print!("update canvas item: {}", rid.get_id());
-
-        let src_rect = Rect2::new(
-            Point2::new(0.0, 0.0),
-            texture.size
-        );
+        let src_rect = match sprite.rect {
+            Some(rect) => rect,
+            None => Rect2::new(Point2::default(), texture.size)
+        };
 
         let mut dst_rect = Rect2::new(
             sprite.offset,
