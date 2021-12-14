@@ -2,7 +2,7 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2, Color, Rect2, Size2}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}}};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material}};
 
 use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform}};
 
@@ -17,8 +17,8 @@ fn setup(
     let texture = sff_data.create_texture(None, TextureFlags(0))?;
     let size = texture.size;
     let offset = Point2::new(sff_data.x as f32, sff_data.y as f32);
-
-    let bitmap_font = sprite_system.load_font("res://data/font/arcade.def")?;
+    let shader = Shader::allocate("shader_type canvas_item;render_mode blend_sub;");
+    let material = Material::allocate(shader);
 
     commands.spawn_bundle(SpriteBundle {
         texture,
@@ -30,9 +30,11 @@ fn setup(
             ..Default::default()
         },
         transform: Transform::translation(Vector2::new(100.0, 100.0)),
+        material: Some(material),
         ..Default::default()
     });
 
+    // let bitmap_font = sprite_system.load_font("res://data/font/arcade.def")?;
     // commands.spawn_bundle(TextBundle {
     //     text: Text::new(
     //         "ABC TEST\nSecond Line",

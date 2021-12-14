@@ -5,3 +5,5 @@ pub mod texture;
 pub mod root_node;
 pub mod enumerations;
 pub mod text;
+pub mod material;
+pub mod shader;

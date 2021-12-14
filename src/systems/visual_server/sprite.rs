@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 use bevy_app::{AppBuilder, Plugin};
 use bevy_ecs::prelude::*;
@@ -6,7 +6,7 @@ use gdnative::{api::VisualServer, core_types::{Color, Point2, Rect2, Rid, Size2}
 
 use crate::systems::visual_server::enumerations::{VisualServerStage};
 
-use super::{root_node::RootNode, texture::Texture, transform::Transform};
+use super::{root_node::RootNode, texture::Texture, transform::Transform, material::Material};
 
 #[derive(Default)]
 pub struct Sprite {
@@ -31,6 +31,7 @@ pub struct SpriteBundle {
     pub texture: Arc<Texture>,
     pub visible: Visible,
     pub transform: Transform,
+    pub material: Option<Arc<RwLock<Material>>>,
 }
 
 impl Default for SpriteBundle {
@@ -40,6 +41,7 @@ impl Default for SpriteBundle {
             texture: Arc::new(Texture::invalid()),
             visible: Visible::default(),
             transform: Transform::default(),
+            material: None,
         }
     }
 }
@@ -52,7 +54,7 @@ fn update_canvas_item(
     root_node: Res<RootNode>,
     mut rid_map: ResMut<RidMap>,
     query: Query<
-        (Entity, &Sprite, &Arc<Texture>, &Transform, &Visible),
+        (Entity, &Sprite, &Arc<Texture>, &Transform, &Visible, &Option<Arc<RwLock<Material>>>),
         Or<(Changed<Sprite>, Changed<Arc<Texture>>)>
     >
 ) {
@@ -63,7 +65,8 @@ fn update_canvas_item(
         sprite,
         texture,
         transform,
-        visible
+        visible,
+        material
     ) in query.iter() {
         let rid = match rid_map.canvas_items.get(&entity.id()) {
             Some(value) => {
@@ -93,6 +96,10 @@ fn update_canvas_item(
 
         if sprite.flip_h {
             dst_rect.size.width = -dst_rect.size.width;
+        }
+
+        if let Some(material) = material {
+            visual_server.canvas_item_set_material(rid, material.read().unwrap().rid);
         }
 
         visual_server.canvas_item_set_parent(rid, root_node.canvas_item_rid);
