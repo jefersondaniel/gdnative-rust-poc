@@ -4,6 +4,7 @@ use std::collections::{HashSet,HashMap};
 use std::sync::RwLock;
 use std::sync::Arc;
 use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Point2, Rect2, Rid, Size2, Transform2D}};
+use gdnative::NewRef;
 
 use super::{root_node::RootNode, texture::Texture, transform::Transform};
 
@@ -99,7 +100,7 @@ fn update_meshes(
         visual_server.mesh_add_surface_from_arrays(
             mesh_rid,
             mesh_2d.primitive_type as i64,
-            mesh_2d.surface_array.clone(),
+            mesh_2d.surface_array.new_ref(),
             VariantArray::new_shared(),
             0
         );
