@@ -1,8 +1,8 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2, Color, Rect2, Size2}, godot_print};
+use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material}};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}}};
 
 use super::{log::handle_error, visual_server::{canvas_item::Visible, transform::Transform}};
 
@@ -20,14 +20,43 @@ fn setup(
     let shader = Shader::allocate("shader_type canvas_item;render_mode blend_sub;");
     let material = Material::allocate(shader);
 
-    commands.spawn_bundle(SpriteBundle {
-        texture,
-        sprite: Sprite {
-            size,
-            offset,
-            flip_h: true,
-            rect: Some(Rect2::new(Point2::default(), Size2::new(50.0, 50.0))),
-            ..Default::default()
+    // commands.spawn_bundle(SpriteBundle {
+    //     texture: texture.clone(),
+    //     sprite: Sprite {
+    //         size,
+    //         offset,
+    //         flip_h: true,
+    //         rect: Some(Rect2::new(Point2::default(), Size2::new(50.0, 50.0))),
+    //         ..Default::default()
+    //     },
+    //     transform: Transform::translation(Vector2::new(100.0, 100.0)),
+    //     material: Some(material),
+    //     ..Default::default()
+    // });
+
+    let st = SurfaceTool::new();
+
+    st.begin(PrimitiveType::TRIANGLES.0);
+    // First Triangle
+    st.add_uv(Vector2::new(1.0, 0.0)); // Top Left
+    st.add_vertex(Vector3::new(-80.0, 0.0, 0.0));
+    st.add_uv(Vector2::new(0.0, 0.0)); // Top Right
+    st.add_vertex(Vector3::new(180.0, 0.0, 0.0));
+    st.add_uv(Vector2::new(0.0, 1.0)); // Bottom Right
+    st.add_vertex(Vector3::new(100.0, 100.0, 0.0));
+    // Second Triangle
+    st.add_uv(Vector2::new(1.0, 0.0)); // Top Left
+    st.add_vertex(Vector3::new(-80.0, 0.0, 0.0));
+    st.add_uv(Vector2::new(1.0, 1.0)); // Bottom Left
+    st.add_vertex(Vector3::new(0.0, 100.0, 0.0));
+    st.add_uv(Vector2::new(0.0, 1.0)); // Bottom Right
+    st.add_vertex(Vector3::new(100.0, 100.0, 0.0));
+
+    commands.spawn_bundle(Mesh2dBundle {
+        texture: texture.clone(),
+        mesh: Mesh2d {
+            primitive_type: PrimitiveType::TRIANGLES,
+            surface_array: st.commit_to_arrays(),
         },
         transform: Transform::translation(Vector2::new(100.0, 100.0)),
         material: Some(material),
@@ -79,7 +108,7 @@ struct Counter(i32);
 
 fn movement(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut Transform, &mut Visible)>,
+    mut query: Query<(Entity, &mut Transform, &mut Visible), With<Sprite>>,
     mut counter: Local<Counter>
 ) {
     counter.0 = counter.0 + 1;

@@ -64,3 +64,11 @@ impl From<&Transform> for Transform2D {
             .then_scale(transform.scale.x, transform.scale.y)
     }
 }
+
+impl From<Transform> for Transform2D {
+    fn from(transform: Transform) -> Self {
+        Transform2D::translation(transform.translation.x, transform.translation.y)
+            .then_rotate(transform.rotation)
+            .then_scale(transform.scale.x, transform.scale.y)
+    }
+}

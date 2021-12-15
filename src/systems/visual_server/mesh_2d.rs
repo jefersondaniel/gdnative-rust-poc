@@ -1,9 +1,11 @@
 use bevy_ecs::prelude::*;
 use bevy_app::{AppBuilder, Plugin};
+use gdnative::api::visual_server::PrimitiveType;
+use gdnative::core_types::Vector2;
 use std::collections::{HashSet,HashMap};
 use std::sync::RwLock;
 use std::sync::Arc;
-use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Point2, Rect2, Rid, Size2, Transform2D}};
+use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Point2, Rect2, Rid, Size2}};
 use gdnative::NewRef;
 
 use super::{root_node::RootNode, texture::Texture, transform::Transform};
@@ -18,27 +20,15 @@ struct RidMap {
     pub meshes: HashMap<u32, Rid>,
 }
 
-#[repr(i64)]
-#[derive(Copy, Clone, PartialEq)]
-pub enum PrimitiveType {
-    Points = 0,
-    Lines = 1,
-    LineStrip = 2,
-    LineLoop = 3,
-    Triangles = 4,
-    TriangleStrip = 5,
-    TriangleFan = 6,
-}
-
 pub struct Mesh2d {
-    primitive_type: PrimitiveType,
-    surface_array: VariantArray,
+    pub primitive_type: PrimitiveType,
+    pub surface_array: VariantArray,
 }
 
 impl Default for Mesh2d {
     fn default() -> Self {
         Mesh2d {
-            primitive_type: PrimitiveType::Triangles,
+            primitive_type: PrimitiveType::TRIANGLES,
             surface_array: VariantArray::new_shared(),
         }
     }
@@ -95,24 +85,22 @@ fn update_meshes(
             }
         };
 
-        let surface_count = visual_server.mesh_get_surface_count(mesh_rid);
-
         visual_server.mesh_add_surface_from_arrays(
             mesh_rid,
-            mesh_2d.primitive_type as i64,
+            mesh_2d.primitive_type.0,
             mesh_2d.surface_array.new_ref(),
             VariantArray::new_shared(),
             0
         );
 
         let canvas_item_rid = build_canvas_item(&visual_server, entity.id(), &mut rid_map.canvas_items);
-        let xform = Transform2D::new(1.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        let xform = Transform::translation(Vector2::new(0.0, 0.0));
         let modulate = Color::rgba(1.0, 1.0, 1.0, 1.0);
 
         visual_server.canvas_item_add_mesh(
             canvas_item_rid,
             mesh_rid,
-            xform,
+            xform.into(),
             modulate,
             texture.rid,
             Rid::new()
@@ -126,6 +114,8 @@ fn update_meshes(
         visual_server.canvas_item_set_visible(canvas_item_rid, visible.is_visible);
         // Only attach to parent after all changes
         visual_server.canvas_item_set_parent(canvas_item_rid, root_node.canvas_item_rid);
+
+        gdnative::godot_print!("make mesh");
     }
 }
 
