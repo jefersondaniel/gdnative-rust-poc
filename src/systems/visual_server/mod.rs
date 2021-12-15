@@ -7,3 +7,5 @@ pub mod enumerations;
 pub mod text;
 pub mod material;
 pub mod shader;
+pub mod mesh_2d;
+pub mod canvas_item;

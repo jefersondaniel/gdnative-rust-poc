@@ -4,7 +4,7 @@ use gdnative::{api::{visual_server::TextureFlags}, core_types::{Point2, Vector2,
 
 use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material}};
 
-use super::{log::handle_error, visual_server::{sprite::Visible, transform::Transform}};
+use super::{log::handle_error, visual_server::{canvas_item::Visible, transform::Transform}};
 
 fn setup(
     mut commands: Commands,
@@ -107,6 +107,6 @@ pub struct DebugPlugin;
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_startup_system(setup.system().chain(handle_error.system()));
-        // app.add_system(movement.system());
+        app.add_system(movement.system());
     }
 }

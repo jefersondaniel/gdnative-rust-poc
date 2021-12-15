@@ -1,3 +1,5 @@
+use crate::systems::visual_server::canvas_item::build_canvas_item;
+use crate::systems::visual_server::canvas_item::Visible;
 use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 use bevy_app::{AppBuilder, Plugin};
@@ -15,14 +17,6 @@ pub struct Sprite {
     pub offset: Point2,
     pub flip_v: bool,
     pub flip_h: bool,
-}
-
-pub struct Visible {
-    pub is_visible: bool,
-}
-
-impl Default for Visible {
-    fn default() -> Self { Visible { is_visible: true } }
 }
 
 #[derive(Bundle)]
@@ -68,17 +62,7 @@ fn update_canvas_item(
         visible,
         material
     ) in query.iter() {
-        let rid = match rid_map.canvas_items.get(&entity.id()) {
-            Some(value) => {
-                visual_server.canvas_item_clear(*value);
-                *value
-            },
-            None => {
-                let rid = visual_server.canvas_item_create();
-                rid_map.canvas_items.insert(entity.id(), rid);
-                rid
-            }
-        };
+        let rid = build_canvas_item(&visual_server, entity.id(), &mut rid_map.canvas_items);
 
         let src_rect = match sprite.rect {
             Some(rect) => rect,
@@ -102,7 +86,6 @@ fn update_canvas_item(
             visual_server.canvas_item_set_material(rid, material.read().unwrap().rid);
         }
 
-        visual_server.canvas_item_set_parent(rid, root_node.canvas_item_rid);
         visual_server.canvas_item_add_texture_rect_region(
             rid,
             dst_rect,
@@ -113,8 +96,12 @@ fn update_canvas_item(
             Rid::new(),
             false
         );
+
         visual_server.canvas_item_set_transform(rid, transform.into());
         visual_server.canvas_item_set_visible(rid, visible.is_visible);
+
+        // Only attach to parent after all changes
+        visual_server.canvas_item_set_parent(rid, root_node.canvas_item_rid);
     }
 }
 

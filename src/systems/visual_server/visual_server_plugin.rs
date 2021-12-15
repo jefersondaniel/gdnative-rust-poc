@@ -1,7 +1,7 @@
 use bevy_app::{AppBuilder, CoreStage, Plugin};
 use bevy_ecs::prelude::*;
 
-use super::{enumerations::VisualServerStage, sprite::SpritePlugin, text::text_plugin::TextPlugin};
+use super::{enumerations::VisualServerStage, sprite::SpritePlugin, text::text_plugin::TextPlugin, mesh_2d::Mesh2dPlugin};
 
 
 #[derive(Default)]
@@ -14,6 +14,7 @@ impl Plugin for VisualServerPlugin {
             .add_stage_after(VisualServerStage::Remove, VisualServerStage::Update, SystemStage::single_threaded())
             .add_stage_after(VisualServerStage::Update, VisualServerStage::Transform, SystemStage::single_threaded())
             .add_plugin(SpritePlugin::default())
-            .add_plugin(TextPlugin::default());
+            .add_plugin(TextPlugin::default())
+            .add_plugin(Mesh2dPlugin::default());
     }
 }
