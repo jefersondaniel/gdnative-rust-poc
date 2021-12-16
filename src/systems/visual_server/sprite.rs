@@ -9,6 +9,7 @@ use gdnative::{api::VisualServer, core_types::{Color, Point2, Rect2, Rid, Size2}
 
 use crate::systems::visual_server::enumerations::{VisualServerStage};
 
+use super::canvas_item::ClipRect;
 use super::{root_node::RootNode, texture::Texture, material::Material};
 
 #[derive(Default)]
@@ -26,6 +27,7 @@ pub struct SpriteBundle {
     pub texture: Arc<Texture>,
     pub visible: Visible,
     pub transform: Transform2D,
+    pub clip_rect: Option<ClipRect>,
     pub material: Option<Arc<RwLock<Material>>>,
 }
 
@@ -36,6 +38,7 @@ impl Default for SpriteBundle {
             texture: Arc::new(Texture::invalid()),
             visible: Visible::default(),
             transform: Transform2D::default(),
+            clip_rect: None,
             material: None,
         }
     }
@@ -49,8 +52,8 @@ fn update_canvas_item(
     root_node: Res<RootNode>,
     mut rid_map: ResMut<RidMap>,
     query: Query<
-        (Entity, &Sprite, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>),
-        Or<(Changed<Sprite>, Changed<Arc<Texture>>)>
+        (Entity, &Sprite, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
+        Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>)>
     >
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
@@ -61,19 +64,20 @@ fn update_canvas_item(
         texture,
         transform,
         visible,
-        material
+        material,
+        clip_rect
     ) in query.iter() {
         let rid = build_canvas_item(&visual_server, entity.id(), &mut rid_map.canvas_items);
-
-        let src_rect = match sprite.rect {
-            Some(rect) => rect,
-            None => Rect2::new(Point2::default(), texture.size)
-        };
 
         let mut dst_rect = Rect2::new(
             sprite.offset,
             sprite.size
         );
+
+        let src_rect = match sprite.rect {
+            Some(rect) => rect,
+            None => Rect2::new(Point2::default(), texture.size)
+        };
 
         if sprite.flip_v {
             dst_rect.size.height = -dst_rect.size.height;
@@ -85,6 +89,11 @@ fn update_canvas_item(
 
         if let Some(material) = material {
             visual_server.canvas_item_set_material(rid, material.read().unwrap().rid);
+        }
+
+        if let Some(clip_rect) = clip_rect {
+            visual_server.canvas_item_set_clip(rid, true);
+            visual_server.canvas_item_set_custom_rect(rid,true, clip_rect.0);
         }
 
         visual_server.canvas_item_add_texture_rect_region(

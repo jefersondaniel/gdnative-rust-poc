@@ -8,6 +8,7 @@ use std::sync::RwLock;
 use std::sync::Arc;
 use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Point2, Rect2, Rid, Size2}};
 
+use super::canvas_item::ClipRect;
 use super::{root_node::RootNode, texture::Texture};
 
 use crate::systems::visual_server::canvas_item::build_canvas_item;
@@ -41,6 +42,7 @@ pub struct Mesh2dBundle {
     pub visible: Visible,
     pub transform: Transform2D,
     pub material: Option<Arc<RwLock<Material>>>,
+    pub clip_rect: Option<ClipRect>,
 }
 
 impl Default for Mesh2dBundle {
@@ -51,6 +53,7 @@ impl Default for Mesh2dBundle {
             visible: Visible::default(),
             transform: Transform2D::default(),
             material: None,
+            clip_rect: None
         }
     }
 }
@@ -59,8 +62,8 @@ fn update_meshes(
     root_node: Res<RootNode>,
     mut rid_map: ResMut<RidMap>,
     query: Query<
-        (Entity, &Mesh2d, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>),
-        Or<(Changed<Mesh2d>, Changed<Arc<Texture>>)>
+        (Entity, &Mesh2d, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
+        Or<(Changed<Mesh2d>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>)>
     >
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
@@ -71,7 +74,8 @@ fn update_meshes(
         texture,
         transform,
         visible,
-        material
+        material,
+        clip_rect
     ) in query.iter() {
         let mesh_rid = match rid_map.meshes.get(&entity.id()) {
             Some(value) => {
@@ -110,12 +114,15 @@ fn update_meshes(
             visual_server.canvas_item_set_material(canvas_item_rid, material.read().unwrap().rid);
         }
 
+        if let Some(clip_rect) = clip_rect {
+            visual_server.canvas_item_set_clip(canvas_item_rid, true);
+            visual_server.canvas_item_set_custom_rect(canvas_item_rid,true, clip_rect.0);
+        }
+
         visual_server.canvas_item_set_transform(canvas_item_rid, *transform);
         visual_server.canvas_item_set_visible(canvas_item_rid, visible.is_visible);
         // Only attach to parent after all changes
         visual_server.canvas_item_set_parent(canvas_item_rid, root_node.canvas_item_rid);
-
-        gdnative::godot_print!("make mesh");
     }
 }
 

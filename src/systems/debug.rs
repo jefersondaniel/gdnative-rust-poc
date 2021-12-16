@@ -2,7 +2,7 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3, Transform2D}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}}};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}};
 
 use super::{log::handle_error, visual_server::{canvas_item::Visible}};
 
@@ -20,19 +20,19 @@ fn setup(
     let shader = Shader::allocate("shader_type canvas_item;render_mode blend_sub;");
     let material = Material::allocate(shader);
 
-    // commands.spawn_bundle(SpriteBundle {
-    //     texture: texture.clone(),
-    //     sprite: Sprite {
-    //         size,
-    //         offset,
-    //         flip_h: true,
-    //         rect: Some(Rect2::new(Point2::default(), Size2::new(50.0, 50.0))),
-    //         ..Default::default()
-    //     },
-    //     transform: Transform::translation(Vector2::new(100.0, 100.0)),
-    //     material: Some(material),
-    //     ..Default::default()
-    // });
+    commands.spawn_bundle(SpriteBundle {
+        texture: texture.clone(),
+        sprite: Sprite {
+            size: size * 2.0,
+            offset,
+            flip_h: true,
+            ..Default::default()
+        },
+        clip_rect: Some(ClipRect(Rect2::new(Point2::new(0.0, 0.0), Size2::new(300.0, 300.0)))),
+        transform: Transform2D::translation(100.0, 100.0),
+        material: Some(material.clone()),
+        ..Default::default()
+    });
 
     let st = SurfaceTool::new();
 
@@ -59,7 +59,8 @@ fn setup(
             surface_array: st.commit_to_arrays(),
         },
         transform: Transform2D::translation(100.0, 100.0),
-        material: Some(material),
+        material: Some(material.clone()),
+        clip_rect: Some(ClipRect(Rect2::new(Point2::new(-80.0, 0.0), Size2::new(400.0, 40.0)))),
         ..Default::default()
     });
 
