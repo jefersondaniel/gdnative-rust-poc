@@ -1,10 +1,10 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3}, godot_print};
+use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3, Transform2D}, godot_print};
 
 use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}}};
 
-use super::{log::handle_error, visual_server::{canvas_item::Visible, transform::Transform}};
+use super::{log::handle_error, visual_server::{canvas_item::Visible}};
 
 fn setup(
     mut commands: Commands,
@@ -58,7 +58,7 @@ fn setup(
             primitive_type: PrimitiveType::TRIANGLES,
             surface_array: st.commit_to_arrays(),
         },
-        transform: Transform::translation(Vector2::new(100.0, 100.0)),
+        transform: Transform2D::translation(100.0, 100.0),
         material: Some(material),
         ..Default::default()
     });
@@ -74,7 +74,7 @@ fn setup(
     //         },
     //         TextAlignment::default()
     //     ),
-    //     transform: Transform::translation(Vector2::new(100.0, 100.0)),
+    //     transform: Transform2D::translation(100.0, 100.0),
     //     ..Default::default()
     // });
 
@@ -91,7 +91,7 @@ fn setup(
     //                 },
     //                 TextAlignment::default()
     //             ),
-    //             transform: Transform::translation(Vector2::new(100.0, 100.0)),
+    //             transform: Transform2D::translation(100.0, 100.0),
     //             ..Default::default()
     //         });
     //     },
@@ -108,13 +108,13 @@ struct Counter(i32);
 
 fn movement(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut Transform, &mut Visible), With<Sprite>>,
+    mut query: Query<(Entity, &mut Transform2D, &mut Visible), With<Sprite>>,
     mut counter: Local<Counter>
 ) {
     counter.0 = counter.0 + 1;
 
     for (_, mut transform, _) in query.iter_mut() {
-        transform.translation += Vector2::new(1.0, 1.0);
+        *transform = transform.then(&Transform2D::translation(1.0, 1.0));
     }
 
     if counter.0 % 5 == 0 {

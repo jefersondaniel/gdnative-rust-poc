@@ -4,11 +4,12 @@ use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 use bevy_app::{AppBuilder, Plugin};
 use bevy_ecs::prelude::*;
+use gdnative::core_types::Transform2D;
 use gdnative::{api::VisualServer, core_types::{Color, Point2, Rect2, Rid, Size2}};
 
 use crate::systems::visual_server::enumerations::{VisualServerStage};
 
-use super::{root_node::RootNode, texture::Texture, transform::Transform, material::Material};
+use super::{root_node::RootNode, texture::Texture, material::Material};
 
 #[derive(Default)]
 pub struct Sprite {
@@ -24,7 +25,7 @@ pub struct SpriteBundle {
     pub sprite: Sprite,
     pub texture: Arc<Texture>,
     pub visible: Visible,
-    pub transform: Transform,
+    pub transform: Transform2D,
     pub material: Option<Arc<RwLock<Material>>>,
 }
 
@@ -34,7 +35,7 @@ impl Default for SpriteBundle {
             sprite: Sprite::default(),
             texture: Arc::new(Texture::invalid()),
             visible: Visible::default(),
-            transform: Transform::default(),
+            transform: Transform2D::default(),
             material: None,
         }
     }
@@ -48,7 +49,7 @@ fn update_canvas_item(
     root_node: Res<RootNode>,
     mut rid_map: ResMut<RidMap>,
     query: Query<
-        (Entity, &Sprite, &Arc<Texture>, &Transform, &Visible, &Option<Arc<RwLock<Material>>>),
+        (Entity, &Sprite, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>),
         Or<(Changed<Sprite>, Changed<Arc<Texture>>)>
     >
 ) {
@@ -97,7 +98,7 @@ fn update_canvas_item(
             false
         );
 
-        visual_server.canvas_item_set_transform(rid, transform.into());
+        visual_server.canvas_item_set_transform(rid, *transform);
         visual_server.canvas_item_set_visible(rid, visible.is_visible);
 
         // Only attach to parent after all changes
@@ -107,13 +108,13 @@ fn update_canvas_item(
 
 fn transform_canvas_item(
     rid_map: Res<RidMap>,
-    query: Query<(Entity, &Transform), (Changed<Transform>, With<Sprite>)>
+    query: Query<(Entity, &Transform2D), (Changed<Transform2D>, With<Sprite>)>
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
     for (entity, transform) in query.iter() {
         if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
-            visual_server.canvas_item_set_transform(*rid, transform.into());
+            visual_server.canvas_item_set_transform(*rid, *transform);
         }
     }
 }
