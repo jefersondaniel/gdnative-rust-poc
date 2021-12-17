@@ -17,8 +17,8 @@ fn setup(
     let texture = sff_data.create_texture(None, TextureFlags(0))?;
     let size = texture.size;
     let offset = Point2::new(sff_data.x as f32, sff_data.y as f32);
-    let shader = Shader::allocate("shader_type canvas_item;render_mode blend_sub;");
-    let material = Material::allocate(shader);
+    // let shader = Shader::allocate("shader_type canvas_item;render_mode blend_sub;");
+    // let material = Material::allocate(shader);
 
     commands.spawn_bundle(SpriteBundle {
         texture: texture.clone(),
@@ -30,7 +30,7 @@ fn setup(
         },
         clip_rect: Some(ClipRect(Rect2::new(Point2::new(0.0, 0.0), Size2::new(300.0, 300.0)))),
         transform: Transform2D::translation(100.0, 100.0),
-        material: Some(material.clone()),
+        // material: Some(material.clone()),
         ..Default::default()
     });
 
@@ -59,25 +59,26 @@ fn setup(
             surface_array: st.commit_to_arrays(),
         },
         transform: Transform2D::translation(100.0, 100.0),
-        material: Some(material.clone()),
+        // material: Some(material.clone()),
         clip_rect: Some(ClipRect(Rect2::new(Point2::new(-80.0, 0.0), Size2::new(400.0, 40.0)))),
         ..Default::default()
     });
 
-    // let bitmap_font = sprite_system.load_font("res://data/font/arcade.def")?;
-    // commands.spawn_bundle(TextBundle {
-    //     text: Text::new(
-    //         "ABC TEST\nSecond Line",
-    //         TextStyle {
-    //             font: bitmap_font.get_color_bank(1),
-    //             font_size: bitmap_font.size,
-    //             ..Default::default()
-    //         },
-    //         TextAlignment::default()
-    //     ),
-    //     transform: Transform2D::translation(100.0, 100.0),
-    //     ..Default::default()
-    // });
+    let bitmap_font = sprite_system.load_font("res://data/font/arcade.def")?;
+
+    commands.spawn_bundle(TextBundle {
+        text: Text::new(
+            "ABC TEST\nSecond Line",
+            TextStyle {
+                font: bitmap_font.get_color_bank(1),
+                font_size: bitmap_font.size,
+                ..Default::default()
+            },
+            TextAlignment::default()
+        ),
+        transform: Transform2D::translation(100.0, 100.0),
+        ..Default::default()
+    });
 
     // match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
     //     Ok(font) => {

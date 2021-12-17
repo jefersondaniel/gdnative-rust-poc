@@ -8,16 +8,14 @@ use std::sync::RwLock;
 use std::sync::Arc;
 use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Point2, Rect2, Rid, Size2}};
 
-use super::canvas_item::ClipRect;
+use super::canvas_item::{ClipRect, CanvasItem, CanvasItemState, setup_canvas_item};
 use super::{root_node::RootNode, texture::Texture};
 
-use crate::systems::visual_server::canvas_item::build_canvas_item;
 use crate::systems::visual_server::material::Material;
 use crate::systems::visual_server::canvas_item::Visible;
 use crate::systems::visual_server::enumerations::{VisualServerStage};
 
 struct RidMap {
-    pub canvas_items: HashMap<u32, Rid>,
     pub meshes: HashMap<u32, Rid>,
 }
 
@@ -37,6 +35,7 @@ impl Default for Mesh2d {
 
 #[derive(Bundle)]
 pub struct Mesh2dBundle {
+    pub canvas_item: CanvasItem,
     pub mesh: Mesh2d,
     pub texture: Arc<Texture>,
     pub visible: Visible,
@@ -48,6 +47,7 @@ pub struct Mesh2dBundle {
 impl Default for Mesh2dBundle {
     fn default() -> Self {
         Mesh2dBundle {
+            canvas_item: CanvasItem::default(),
             mesh: Mesh2d::default(),
             texture: Arc::new(Texture::invalid()),
             visible: Visible::default(),
@@ -61,8 +61,9 @@ impl Default for Mesh2dBundle {
 fn update_meshes(
     root_node: Res<RootNode>,
     mut rid_map: ResMut<RidMap>,
-    query: Query<
-        (Entity, &Mesh2d, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
+    mut canvas_item_state: ResMut<CanvasItemState>,
+    mut query: Query<
+        (Entity, &Mesh2d, &mut CanvasItem, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
         Or<(Changed<Mesh2d>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>)>
     >
 ) {
@@ -71,12 +72,25 @@ fn update_meshes(
     for (
         entity,
         mesh_2d,
+        mut canvas_item,
         texture,
         transform,
         visible,
         material,
         clip_rect
-    ) in query.iter() {
+    ) in query.iter_mut() {
+        setup_canvas_item(
+            &entity,
+            visual_server,
+            &root_node,
+            &mut canvas_item_state,
+            &mut canvas_item,
+            transform,
+            visible,
+            material,
+            clip_rect,
+        );
+
         let mesh_rid = match rid_map.meshes.get(&entity.id()) {
             Some(value) => {
                 visual_server.mesh_clear(*value);
@@ -97,59 +111,17 @@ fn update_meshes(
             0
         );
 
-        let canvas_item_rid = build_canvas_item(&visual_server, entity.id(), &mut rid_map.canvas_items);
         let xform = Transform2D::translation(0.0, 0.0);
         let modulate = Color::rgba(1.0, 1.0, 1.0, 1.0);
 
         visual_server.canvas_item_add_mesh(
-            canvas_item_rid,
+            canvas_item.rid,
             mesh_rid,
             xform.into(),
             modulate,
             texture.rid,
             Rid::new()
         );
-
-        if let Some(material) = material {
-            visual_server.canvas_item_set_material(canvas_item_rid, material.read().unwrap().rid);
-        }
-
-        if let Some(clip_rect) = clip_rect {
-            visual_server.canvas_item_set_clip(canvas_item_rid, true);
-            visual_server.canvas_item_set_custom_rect(canvas_item_rid,true, clip_rect.0);
-        }
-
-        visual_server.canvas_item_set_transform(canvas_item_rid, *transform);
-        visual_server.canvas_item_set_visible(canvas_item_rid, visible.is_visible);
-        // Only attach to parent after all changes
-        visual_server.canvas_item_set_parent(canvas_item_rid, root_node.canvas_item_rid);
-    }
-}
-
-
-fn transform_meshes(
-    rid_map: Res<RidMap>,
-    query: Query<(Entity, &Transform2D), (Changed<Transform2D>, With<Mesh2d>)>
-) {
-    let visual_server = unsafe { VisualServer::godot_singleton() };
-
-    for (entity, transform) in query.iter() {
-        if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
-            visual_server.canvas_item_set_transform(*rid, *transform);
-        }
-    }
-}
-
-fn hide_meshes(
-    rid_map: Res<RidMap>,
-    query: Query<(Entity, &Visible), (Changed<Visible>, With<Mesh2d>)>
-) {
-    let visual_server = unsafe { VisualServer::godot_singleton() };
-
-    for (entity, visible) in query.iter() {
-        if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
-            visual_server.canvas_item_set_visible(*rid, visible.is_visible);
-        }
     }
 }
 
@@ -161,11 +133,6 @@ fn remove_meshes(
     let mut affected_entity_ids = HashSet::new();
 
     for entity in removals.iter() {
-        if let Some(rid) = rid_map.canvas_items.get(&entity.id()) {
-            affected_entity_ids.insert(entity.id());
-            visual_server.free_rid(*rid);
-        }
-
         if let Some(rid) = rid_map.meshes.get(&entity.id()) {
             affected_entity_ids.insert(entity.id());
             visual_server.free_rid(*rid);
@@ -173,7 +140,6 @@ fn remove_meshes(
     }
 
     for id in affected_entity_ids.iter() {
-        rid_map.canvas_items.remove(id);
         rid_map.meshes.remove(id);
     }
 }
@@ -184,10 +150,8 @@ pub struct Mesh2dPlugin;
 impl Plugin for Mesh2dPlugin {
     fn build(&self, builder: &mut AppBuilder) {
         builder
-            .insert_resource(RidMap { canvas_items: HashMap::new(), meshes: HashMap::new() })
+            .insert_resource(RidMap { meshes: HashMap::new() })
             .add_system_to_stage(VisualServerStage::Remove, remove_meshes.system())
-            .add_system_to_stage(VisualServerStage::Update, update_meshes.system())
-            .add_system_to_stage(VisualServerStage::Transform, transform_meshes.system())
-            .add_system_to_stage(VisualServerStage::Transform, hide_meshes.system());
+            .add_system_to_stage(VisualServerStage::Update, update_meshes.system());
     }
 }
