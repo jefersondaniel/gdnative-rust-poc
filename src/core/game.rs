@@ -2,9 +2,9 @@ use std::time::SystemTime;
 
 use bevy_app::App;
 use bevy_core::CorePlugin;
-use gdnative::{api::DynamicFont, prelude::*};
+use gdnative::prelude::*;
 
-use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, visual_server_plugin::VisualServerPlugin}}};
+use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, time::DeltaTime, visual_server_plugin::VisualServerPlugin}}};
 
 #[derive(NativeClass)]
 #[inherit(Node2D)]
@@ -21,6 +21,7 @@ impl Game {
             app: std::mem::take(
                 &mut App::build()
                 .insert_resource(root_node)
+                .insert_resource(DeltaTime::default())
                 .insert_resource(FileSystem::new())
                 .insert_resource(SpriteSystem::new())
                 .add_plugin(CorePlugin::default())
@@ -34,6 +35,11 @@ impl Game {
 
     #[export]
     pub fn _process(&mut self, _owner: TRef<Node2D>, _delta: Variant) {
+        {
+            let mut delta_time = self.app.world.get_resource_mut::<DeltaTime>().unwrap();
+            delta_time.0 = f64::from_variant(&_delta).unwrap();
+        }
+
         let now = SystemTime::now();
         self.app.update();
         match now.elapsed() {
@@ -44,7 +50,7 @@ impl Game {
                     gdnative::godot_warn!("High Frametime: {}ms", frametime);
                 }
             }
-            Err(e) => {}
+            Err(_) => {}
         }
     }
 }
