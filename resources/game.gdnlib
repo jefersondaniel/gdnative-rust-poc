@@ -2,7 +2,8 @@
 
 X11.64="res://target/x86_64-unknown-linux-gnu/debug/libgame.so"
 OSX.64="res://target/x86_64-apple-darwin/debug/libgame.dylib"
-Windows.64="res://target/x86_64-pc-windows-gnu/debug/game.dll"
+;Windows.64="res://target/x86_64-pc-windows-gnu/debug/game.dll"
+Windows.64="res://target/debug/game.dll"
 Android.arm64-v8a="res://target/aarch64-linux-android/debug/libgame.so"
 Android.x86_64="res://target/x86_64-linux-android/debug/libgame.so"
 HTML5.wasm32="res://target/wasm32-unknown-emscripten/debug/game.wasm"
