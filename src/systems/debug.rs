@@ -4,7 +4,7 @@ use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool},
 
 use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}};
 
-use super::{log::handle_error, visual_server::{canvas_item::Visible}};
+use super::{log::handle_error, visual_server::{canvas_item::Visible}, input::Input};
 
 fn setup(
     mut commands: Commands,
@@ -109,6 +109,7 @@ fn setup(
 struct Counter(i32);
 
 fn movement(
+    input: Res<Input>,
     mut commands: Commands,
     mut query: Query<(Entity, &mut Transform2D, &mut Visible), With<Sprite>>,
     mut counter: Local<Counter>
@@ -116,8 +117,19 @@ fn movement(
     counter.0 = counter.0 + 1;
 
     for (_, mut transform, _) in query.iter_mut() {
-        *transform = transform.then(&Transform2D::translation(1.0, 1.0));
-    }
+        if input.pressed("P1_B") {
+            *transform = transform.then(&Transform2D::translation(-10.0, 0.0));
+        }
+        if input.pressed("P1_F") {
+            *transform = transform.then(&Transform2D::translation(10.0, 0.0));
+        }
+        if input.pressed("P1_U") {
+            *transform = transform.then(&Transform2D::translation(0.0, -10.0));
+        }
+        if input.pressed("P1_D") {
+            *transform = transform.then(&Transform2D::translation(0.0, 10.0));
+        }
+   }
 
     if counter.0 % 5 == 0 {
         for (_, _, mut visible) in query.iter_mut() {
@@ -125,7 +137,7 @@ fn movement(
         }
     }
 
-    if counter.0 > 300 {
+    if counter.0 > 600 {
         for (entity, _, _) in query.iter_mut() {
             commands.entity(entity).despawn();
         }

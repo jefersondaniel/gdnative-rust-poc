@@ -2,9 +2,9 @@ use std::time::SystemTime;
 
 use bevy_app::App;
 use bevy_core::CorePlugin;
-use gdnative::prelude::*;
+use gdnative::prelude::{NativeClass,Node2D,TRef,methods,FromVariant,Variant};
 
-use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, time::DeltaTime, visual_server_plugin::VisualServerPlugin}}};
+use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, time::DeltaTime, visual_server_plugin::VisualServerPlugin}, input::Input}};
 
 #[derive(NativeClass)]
 #[inherit(Node2D)]
@@ -16,11 +16,13 @@ pub struct Game {
 impl Game {
     pub fn new(owner: TRef<Node2D>) -> Self {
         let root_node = RootNode::new(&owner);
+        let input = Input::default();
 
         Game {
             app: std::mem::take(
                 &mut App::build()
                 .insert_resource(root_node)
+                .insert_resource(input)
                 .insert_resource(DeltaTime::default())
                 .insert_resource(FileSystem::new())
                 .insert_resource(SpriteSystem::new())
