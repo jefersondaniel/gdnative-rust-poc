@@ -61,6 +61,7 @@ fn setup(
         transform: Transform2D::translation(100.0, 100.0),
         // material: Some(material.clone()),
         clip_rect: Some(ClipRect(Rect2::new(Point2::new(-80.0, 0.0), Size2::new(400.0, 40.0)))),
+        z_index: 10.into(),
         ..Default::default()
     });
 

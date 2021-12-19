@@ -8,7 +8,7 @@ use gdnative::{api::VisualServer, core_types::{Color, Point2, Rect2, Rid, Size2}
 use crate::systems::visual_server::enumerations::{VisualServerStage};
 use crate::systems::visual_server::canvas_item::Visible;
 
-use super::canvas_item::CanvasItem;
+use super::canvas_item::{CanvasItem, ZIndex};
 use super::canvas_item::CanvasItemState;
 use super::canvas_item::ClipRect;
 use super::canvas_item::setup_canvas_item;
@@ -32,6 +32,7 @@ pub struct SpriteBundle {
     pub transform: Transform2D,
     pub clip_rect: Option<ClipRect>,
     pub material: Option<Arc<RwLock<Material>>>,
+    pub z_index: ZIndex,
 }
 
 impl Default for SpriteBundle {
@@ -42,6 +43,7 @@ impl Default for SpriteBundle {
             visible: Visible::default(),
             transform: Transform2D::default(),
             canvas_item: CanvasItem::default(),
+            z_index: ZIndex::default(),
             clip_rect: None,
             material: None,
         }

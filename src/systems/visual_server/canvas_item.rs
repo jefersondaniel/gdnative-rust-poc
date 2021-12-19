@@ -32,6 +32,15 @@ impl Default for Visible {
     fn default() -> Self { Visible { is_visible: true } }
 }
 
+#[derive(Default)]
+pub struct ZIndex(pub i64);
+
+impl From<i32> for ZIndex {
+    fn from(i: i32) -> Self {
+        Self(i as i64)
+    }
+}
+
 pub struct ClipRect(pub Rect2);
 
 pub fn setup_canvas_item(
@@ -76,6 +85,16 @@ fn transform_canvas_item(
     }
 }
 
+fn zindex_canvas_item(
+    query: Query<(Entity, &CanvasItem, &ZIndex), Changed<ZIndex>>
+) {
+    let visual_server = unsafe { VisualServer::godot_singleton() };
+
+    for (_, canvas_item, z_index) in query.iter() {
+        visual_server.canvas_item_set_z_index(canvas_item.rid, z_index.0);
+    }
+}
+
 fn hide_canvas_item(query: Query<(Entity, &CanvasItem, &Visible), Changed<Visible>>) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
@@ -112,6 +131,7 @@ impl Plugin for CanvasItemPlugin {
             .insert_resource(CanvasItemState { canvas_item_rids: HashMap::new() })
             .add_system_to_stage(VisualServerStage::Remove, remove_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system())
+            .add_system_to_stage(VisualServerStage::Transform, zindex_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, hide_canvas_item.system());
     }
 }

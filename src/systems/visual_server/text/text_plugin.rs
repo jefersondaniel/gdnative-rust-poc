@@ -6,7 +6,7 @@ use bevy_app::{AppBuilder, Plugin};
 use gdnative::core_types::{Transform2D};
 use gdnative::api::{VisualServer};
 
-use crate::systems::visual_server::canvas_item::{Visible, ClipRect, setup_canvas_item, CanvasItemState, CanvasItem};
+use crate::systems::visual_server::canvas_item::{Visible, ClipRect, setup_canvas_item, CanvasItemState, CanvasItem, ZIndex};
 use crate::systems::visual_server::material::Material;
 use crate::{systems::visual_server::{enumerations::VisualServerStage, root_node::RootNode, texture::Texture}};
 
@@ -27,6 +27,7 @@ pub struct TextBundle {
     pub transform: Transform2D,
     pub clip_rect: Option<ClipRect>,
     pub material: Option<Arc<RwLock<Material>>>,
+    pub z_index: ZIndex,
 }
 
 #[derive(Default)]

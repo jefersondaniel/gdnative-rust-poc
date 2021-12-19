@@ -8,7 +8,7 @@ use std::sync::RwLock;
 use std::sync::Arc;
 use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Point2, Rect2, Rid, Size2}};
 
-use super::canvas_item::{ClipRect, CanvasItem, CanvasItemState, setup_canvas_item};
+use super::canvas_item::{ClipRect, CanvasItem, CanvasItemState, setup_canvas_item, ZIndex};
 use super::{root_node::RootNode, texture::Texture};
 
 use crate::systems::visual_server::material::Material;
@@ -42,6 +42,7 @@ pub struct Mesh2dBundle {
     pub transform: Transform2D,
     pub material: Option<Arc<RwLock<Material>>>,
     pub clip_rect: Option<ClipRect>,
+    pub z_index: ZIndex,
 }
 
 impl Default for Mesh2dBundle {
@@ -52,6 +53,7 @@ impl Default for Mesh2dBundle {
             texture: Arc::new(Texture::invalid()),
             visible: Visible::default(),
             transform: Transform2D::default(),
+            z_index: ZIndex::default(),
             material: None,
             clip_rect: None
         }
