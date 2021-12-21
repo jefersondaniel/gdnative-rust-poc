@@ -2,6 +2,7 @@ use gdnative::prelude::*;
 use crate::core::game::Game;
 
 mod animations;
+mod audio;
 mod backgrounds;
 mod core;
 mod drawing;

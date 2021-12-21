@@ -2,9 +2,9 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3, Transform2D}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}, audio::{snd_parser::read_sounds, structs::WavSound}};
 
-use super::{log::handle_error, visual_server::{canvas_item::Visible}, input::Input};
+use super::{log::handle_error, visual_server::{canvas_item::Visible}, input::Input, audio_server::audio::Audio};
 
 fn setup(
     mut commands: Commands,
@@ -81,6 +81,9 @@ fn setup(
         ..Default::default()
     });
 
+    let sounds = read_sounds("res://data/data/system.snd").expect("Can't read system sound");
+    commands.insert_resource(sounds);
+
     // match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
     //     Ok(font) => {
     //         commands.spawn_bundle(TextBundle {
@@ -111,12 +114,12 @@ struct Counter(i32);
 
 fn movement(
     input: Res<Input>,
+    audio: Res<Audio>,
+    sounds: Res<Vec<WavSound>>,
     mut commands: Commands,
     mut query: Query<(Entity, &mut Transform2D, &mut Visible), With<Sprite>>,
     mut counter: Local<Counter>
 ) {
-    counter.0 = counter.0 + 1;
-
     for (_, mut transform, _) in query.iter_mut() {
         if input.pressed("P1_B") {
             *transform = transform.then(&Transform2D::translation(-10.0, 0.0));
@@ -132,6 +135,11 @@ fn movement(
         }
    }
 
+   if counter.0 % 10 == 0 {
+       let stream = sounds[0].stream.clone();
+       audio.play(stream);
+   }
+
     if counter.0 % 5 == 0 {
         for (_, _, mut visible) in query.iter_mut() {
             visible.is_visible = !visible.is_visible;
@@ -143,6 +151,8 @@ fn movement(
             commands.entity(entity).despawn();
         }
     }
+
+    counter.0 = counter.0 + 1;
 }
 
 #[derive(Default)]

@@ -1,3 +1,4 @@
+pub mod audio_server;
 pub mod menu;
 pub mod log;
 pub mod visual_server;
