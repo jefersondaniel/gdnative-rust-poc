@@ -17,8 +17,6 @@ pub struct VectorFont {
 
 impl VectorFont {
     pub fn try_from_bytes(font_data: Vec<u8>) -> Result<Self, InvalidFont> {
-        gdnative::godot_print!("Loaded font with {} bytes", font_data.len());
-
         let font = FontVec::try_from_vec(font_data)?;
         let font = FontArc::new(font);
 

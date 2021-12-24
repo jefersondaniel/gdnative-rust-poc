@@ -1,4 +1,4 @@
-use gdnative::{core_types::{Rect2, Size2, Vector2, Point2}, api::visual_server::TextureFlags};
+use gdnative::{core_types::{Rect2, Size2, Vector2, Point2}, api::visual_server::TextureFlags, godot_warn};
 
 use crate::{core::error::DataError, io::file_system::FileSystem, systems::visual_server::{text::{font::Font, common::{FontSpacing, GlyphSpacing}, bitmap_font::BitmapFont, font_loader::load_dynamic_font}, texture::Texture}};
 
@@ -129,13 +129,27 @@ impl MugenFont {
             })
         }
 
-        let font = load_dynamic_font(&font_path)?;
+        let font_result = load_dynamic_font(&font_path);
 
         // TODO: Adjust spacing for TrueType fonts
 
-        Ok(MugenFont {
-            font_banks: vec![font],
-            size: size.height as i32,
-        })
+        match font_result {
+            Ok(font) => {
+                return Ok(MugenFont {
+                    font_banks: vec![font],
+                    size: size.height as i32,
+                })
+            },
+            Err(_) => {
+                let font= load_dynamic_font("res://resources/roboto.ttf")?;
+
+                godot_warn!("True type font not found: {}, using fallback", file_system.get_name(&font_path));
+
+                Ok(MugenFont {
+                    font_banks: vec![font],
+                    size: size.height as i32,
+                })
+            }
+        }
     }
 }

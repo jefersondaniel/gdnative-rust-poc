@@ -3,7 +3,8 @@ use crate::core::attribute_value::AttributeValue;
 use crate::core::regex::{RegEx, RegExFlags};
 use crate::io::text_file::TextFile;
 use crate::io::text_section::TextSection;
-use std::path::PathBuf;
+use std::ffi::OsStr;
+use std::path::{PathBuf, Path};
 use gdnative::prelude::*;
 use gdnative::api::file::File;
 
@@ -23,7 +24,7 @@ impl FileSystem {
         let mut directory = self.get_directory(referrer);
         let mut path = self.combine_paths(&directory, name);
 
-        for _ in 0..1 {
+        for _ in 0..2 {
             if !self.does_file_exist(&path) {
                 directory = self.get_directory(&directory);
                 path = self.combine_paths(&directory, name);
@@ -37,13 +38,20 @@ impl FileSystem {
     }
 
     pub fn combine_paths(&self, lhs: &str, rhs: &str) -> String {
-        return format!("{}/{}", lhs.trim_end_matches('/'), rhs.trim_start_matches('/'))
+         return format!("{}/{}", lhs.trim_end_matches('/'), rhs.trim_start_matches('/'))
     }
 
     pub fn get_directory(&self, filepath: &str) -> String {
         let mut path_buf = PathBuf::from(filepath);
         path_buf.pop();
         path_buf.to_str().unwrap().to_string()
+    }
+
+    pub fn get_name(&self, filepath: &str) -> String {
+        let path_buff = Path::new(filepath);
+        let default = OsStr::new("");
+        let result = path_buff.file_name().unwrap_or(&default);
+        result.to_str().unwrap_or("").to_string()
     }
 
     pub fn open_file(&self, filepath: &str) -> Result<Ref<File, Unique>, DataError> {
