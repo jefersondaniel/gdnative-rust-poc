@@ -222,6 +222,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_transform"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d166fe11f67dc195b42207e7b096f36680f611afc8f4105b3d81865b66ecf91"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_math",
+ "bevy_reflect",
+ "bevy_utils",
+ "smallvec",
+]
+
+[[package]]
 name = "bevy_utils"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -421,6 +435,7 @@ dependencies = [
  "bevy_app",
  "bevy_core",
  "bevy_ecs",
+ "bevy_transform",
  "byteorder",
  "enum-flags",
  "gdnative",

@@ -2,6 +2,7 @@ use std::time::SystemTime;
 
 use bevy_app::App;
 use bevy_core::CorePlugin;
+use bevy_transform::TransformPlugin;
 use gdnative::{prelude::{NativeClass,Node2D,TRef,methods,FromVariant,Variant}};
 
 use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, time::DeltaTime, visual_server_plugin::VisualServerPlugin}, input::Input, audio_server::audio_server_plugin::AudioServerPlugin}};
@@ -27,6 +28,7 @@ impl Game {
                 .insert_resource(FileSystem::new())
                 .insert_resource(SpriteSystem::new())
                 .add_plugin(CorePlugin::default())
+                .add_plugin(TransformPlugin::default())
                 .add_plugin(VisualServerPlugin::default())
                 .add_plugin(AudioServerPlugin::default())
                 // .add_plugin(DebugPlugin::default())

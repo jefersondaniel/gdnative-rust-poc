@@ -17,6 +17,7 @@ lto = true
 bevy_core = "0.5.0"
 bevy_app = "0.5.0"
 bevy_ecs = "0.5.0"
+bevy_transform = "0.5.0"
 gdnative = "0.9"
 byteorder = "1.4.3"
 enum-flags = "0.1.8"

@@ -1,7 +1,11 @@
+use bevy_ecs::prelude::*;
+use bevy_transform::hierarchy::ChildBuilder;
+
 use crate::{animations::animation_manager::AnimationManager, core::{configuration::Configuration, error::DataError}, drawing::{sprite_file::SpriteFile}, io::text_section::TextSection};
 
 use super::{background_type::BackgroundType, static_background::StaticBackground};
 
+#[derive(Clone)]
 pub enum Background {
     None,
     Static(StaticBackground),
@@ -48,4 +52,17 @@ fn build_animated_background(
     animation_manager: &AnimationManager
 ) -> Result<Background, DataError> {
     Ok(Background::None)
+}
+
+impl Background {
+    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>) {
+        match self {
+            Background::Static(static_background) => {
+                static_background.render(commands, &configuration);
+            },
+            _ => {
+                // pass
+            }
+        }
+    }
 }

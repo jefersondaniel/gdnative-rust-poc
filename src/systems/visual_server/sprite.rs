@@ -14,7 +14,7 @@ use super::canvas_item::ClipRect;
 use super::canvas_item::setup_canvas_item;
 use super::{root_node::RootNode, texture::Texture, material::Material};
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Sprite {
     pub size: Size2,
     pub rect: Option<Rect2>,
