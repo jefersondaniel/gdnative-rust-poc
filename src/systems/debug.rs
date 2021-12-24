@@ -114,7 +114,7 @@ struct Counter(i32);
 
 fn movement(
     input: Res<Input>,
-    audio: Res<Audio>,
+    mut audio: ResMut<Audio>,
     sounds: Res<Vec<WavSound>>,
     mut commands: Commands,
     mut query: Query<(Entity, &mut Transform2D, &mut Visible), With<Sprite>>,
