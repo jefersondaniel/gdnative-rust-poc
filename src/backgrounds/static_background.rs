@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::*;
+use bevy_ecs::{prelude::*, system::EntityCommands};
 use bevy_transform::hierarchy::ChildBuilder;
 use std::{sync::Arc};
 use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Vector3, Transform2D, Rect2, Size2}};
@@ -38,7 +38,7 @@ impl StaticBackground {
         })
     }
 
-    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>) {
+    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>) -> Entity {
         let st = SurfaceTool::new();
         let size = self.sprite.size;
         let (tilestart, tileend) = self.base_background.get_tile_length(self.sprite.size, &configuration);
@@ -78,6 +78,8 @@ impl StaticBackground {
                 surface_array: st.commit_to_arrays(),
             },
             ..Default::default()
-        });
+        })
+        .insert(self.clone())
+        .id()
     }
 }

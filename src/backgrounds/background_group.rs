@@ -37,10 +37,4 @@ impl BackgroundGroup {
             backgrounds,
         })
     }
-
-    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>) {
-        for background in self.backgrounds.iter() {
-            background.render(commands, &configuration);
-        }
-    }
 }

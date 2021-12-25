@@ -11,6 +11,8 @@ pub enum Background {
     Static(StaticBackground),
 }
 
+struct Empty;
+
 pub fn build_background(
     configuration: &Configuration,
     textsection: &TextSection,
@@ -55,13 +57,13 @@ fn build_animated_background(
 }
 
 impl Background {
-    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>) {
+    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>) -> Entity {
         match self {
             Background::Static(static_background) => {
-                static_background.render(commands, &configuration);
+                static_background.render(commands, &configuration)
             },
             _ => {
-                // pass
+                commands.spawn().insert(Empty).id()
             }
         }
     }
