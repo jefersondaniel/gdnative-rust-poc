@@ -7,7 +7,6 @@ use crate::{core::{blending::Blending, configuration::Configuration, enumeration
 pub struct BaseBackground {
     pub id: i32,
     pub name: String,
-    pub currentlocation: Vector2,
     pub startlocation: Vector2,
     pub delta: Vector2,
     pub tiling: Vector2,
@@ -24,13 +23,10 @@ impl BaseBackground {
         configuration: &Configuration,
         textsection: &TextSection
     ) -> Result<Self, DataError> {
-        let startlocation = textsection.get_attribute_or_default("start");
-
         Ok(BaseBackground {
             name: get_background_name(textsection),
             id: textsection.get_attribute_or("id", 0),
-            startlocation,
-            currentlocation: startlocation,
+            startlocation: textsection.get_attribute_or_default("start"),
             delta: textsection.get_attribute_or_default("delta"),
             tiling: textsection.get_attribute_or_default("tile"),
             tilingspacing: textsection.get_attribute_or_default("tilespacing"),

@@ -9,10 +9,10 @@ use super::base_background::BaseBackground;
 
 #[derive(Clone)]
 pub struct StaticBackground {
-    base_background: BaseBackground,
-    spriteid: SpriteId,
-    texture: Arc<Texture>,
-    sprite: Sprite,
+    pub base_background: BaseBackground,
+    pub spriteid: SpriteId,
+    pub texture: Arc<Texture>,
+    pub sprite: Sprite,
 }
 
 impl StaticBackground {
@@ -49,7 +49,7 @@ impl StaticBackground {
         for y in (tilestart.y as i32)..(tileend.y as i32) {
             for x in (tilestart.x as i32)..(tileend.x as i32) {
                 let adjustment = (Vector2::new(size.width, size.height) + tilingspacing).component_mul(Vector2::new(x as f32, y as f32));
-                let location = self.base_background.currentlocation
+                let location = self.base_background.startlocation
                     + adjustment
                     - Vector2::new(self.sprite.offset.x, self.sprite.offset.y)
                     + Vector2::new(configuration.screen_size.width / 2.0, 0.0);
