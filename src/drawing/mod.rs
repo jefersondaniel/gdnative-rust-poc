@@ -6,3 +6,4 @@ pub mod print_data;
 pub mod color;
 pub mod fnt_parser;
 pub mod mugen_font;
+pub mod shader_manager;

@@ -1,6 +1,12 @@
+use gdnative::Ref;
 use gdnative::api::image::Image;
-use gdnative::prelude::*;
+use gdnative::api::visual_server::TextureFlags;
+use gdnative::core_types::ByteArray;
+use gdnative::prelude::Unique;
 use std::rc::Rc;
+use std::sync::Arc;
+
+use crate::systems::visual_server::texture::Texture;
 
 #[derive(Copy, Clone)]
 pub struct RawColor {
@@ -107,4 +113,36 @@ impl RawImage {
         );
         image
     }
+
+    pub fn create_monochromatic_texture(&self, flags: TextureFlags) -> Arc<Texture> {
+        let dest = ByteArray::from_slice(self.pixels.as_slice());
+
+        let image = Image::new();
+
+        image.create_from_data(
+            self.w as i64,
+            self.h as i64,
+            false,
+            Image::FORMAT_L8,
+            dest,
+        );
+
+        Texture::allocate(image, flags)
+    }
+
+    // pub fn create_palette_texture(&self) -> Arc<Texture> {
+    //     let dest = ByteArray::from_slice(self.pixels.as_slice());
+
+    //     let image = Image::new();
+
+    //     image.create_from_data(
+    //         self.w as i64,
+    //         self.h as i64,
+    //         false,
+    //         Image::FORMAT_L8,
+    //         dest,
+    //     );
+
+    //     Texture::allocate(image, flags)
+    // }
 }

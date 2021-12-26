@@ -6,7 +6,7 @@ use crate::core::{error::DataError, regex::RegExFlags};
 
 use super::{attribute_value::{AttributeValue, ParseAttributeValue}, enumerations::BlendType, regex::RegEx};
 
-#[derive(Default, Copy, Clone, PartialEq)]
+#[derive(Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Blending {
     blend_type: BlendType,
     source: u8,

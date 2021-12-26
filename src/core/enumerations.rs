@@ -79,7 +79,7 @@ impl Default for ClsnType {
 #[derive(Copy, Clone, PartialEq)]
 pub enum Facing { Left, Right }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum BlendType { None, Add, Subtract }
 
 impl Default for BlendType {
