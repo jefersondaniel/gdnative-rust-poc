@@ -1,11 +1,34 @@
 shader_type canvas_item;
-render_mode blend_mix;
 
 uniform sampler2D palette;
+uniform int blend_type = 0;
+uniform float blend_source = 1;
+uniform float blend_destination = 1;
 
 void fragment() {
     float r = texture(TEXTURE, UV).r;
     ivec2 pallete_size = textureSize(palette, 0);
-    vec4 palette_color = texture(palette, vec2(r * 255.0 / float(pallete_size.x), 0), 0);
-    COLOR = vec4(palette_color.r, palette_color.g, palette_color.b, palette_color.a);
+    vec4 source_color = texture(palette, vec2(r * 255.0 / float(pallete_size.x), 0), 0);
+
+    if (blend_type == 1 || blend_type == 2) {
+        vec3 destination_color = textureLod(SCREEN_TEXTURE, SCREEN_UV, 0.0).rgb;
+
+        if (blend_type == 1) {
+            COLOR = vec4(
+                destination_color.r * blend_destination + source_color.r * blend_source,
+                destination_color.g * blend_destination  + source_color.g * blend_source,
+                destination_color.b * blend_destination  + source_color.b * blend_source,
+                source_color.a
+            );
+        } else {
+            COLOR = vec4(
+                destination_color.r * blend_destination - source_color.r * blend_source,
+                destination_color.g * blend_destination  - source_color.g * blend_source,
+                destination_color.b * blend_destination  - source_color.b * blend_source,
+                source_color.a
+            );
+        }
+    } else {
+        COLOR = source_color;
+    }
 }

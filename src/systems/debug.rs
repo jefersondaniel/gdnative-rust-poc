@@ -1,6 +1,6 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3, Transform2D}, godot_print};
+use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3, Transform2D, ToVariant}, godot_print};
 
 use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}, audio::{snd_parser::read_sounds, structs::WavSound}, io::file_system::FileSystem};
 
@@ -24,6 +24,9 @@ fn setup(
     let material = Material::allocate(shader);
     let mut material_write = material.write().expect("Could not lock material");
     material_write.set_shader_texture("palette", palette_texture.clone());
+    material_write.set_shader_param("blend_type", 1.to_variant());
+    material_write.set_shader_param("blend_source", 1.0.to_variant());
+    material_write.set_shader_param("blend_destination", 1.0.to_variant());
 
     commands.spawn_bundle(SpriteBundle {
         texture: texture.clone(),
