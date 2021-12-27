@@ -2,35 +2,53 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3, Transform2D}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}, audio::{snd_parser::read_sounds, structs::WavSound}};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}, audio::{snd_parser::read_sounds, structs::WavSound}, io::file_system::FileSystem};
 
 use super::{log::handle_error, visual_server::{canvas_item::Visible}, input::Input, audio_server::audio::Audio};
 
 fn setup(
     mut commands: Commands,
-    sprite_system: Res<SpriteSystem>
+    sprite_system: Res<SpriteSystem>,
+    file_system: Res<FileSystem>
 ) -> Result<(), DataError> {
     godot_print!("Start debug");
 
     let mut sprite_file = sprite_system.get_sprite_file("res://data/data/system.sff")?;
     let sff_data = sprite_file.get_sprite(&SpriteId::new(0, 0))?;
-    let texture = sff_data.create_texture(None, TextureFlags(0))?;
+    let texture = sff_data.create_monochromatic_texture(TextureFlags(0));
+    let palette_texture = sff_data.create_palette_texture(None);
     let size = texture.size;
     let offset = Point2::new(sff_data.x as f32, sff_data.y as f32);
-    // let shader = Shader::allocate("shader_type canvas_item;render_mode blend_sub;");
-    // let material = Material::allocate(shader);
+    let sprite_shader_code = file_system.open_file_as_string("res://resources/sprite.glsl")?;
+    let shader = Shader::allocate(&sprite_shader_code);
+    let material = Material::allocate(shader);
+    let mut material_write = material.write().expect("Could not lock material");
+    material_write.set_shader_texture("palette", palette_texture.clone());
 
     commands.spawn_bundle(SpriteBundle {
         texture: texture.clone(),
         sprite: Sprite {
             size: size * 2.0,
             offset,
-            flip_h: true,
+            flip_h: false,
             ..Default::default()
         },
-        clip_rect: Some(ClipRect(Rect2::new(Point2::new(0.0, 0.0), Size2::new(300.0, 300.0)))),
+        // clip_rect: Some(ClipRect(Rect2::new(Point2::new(0.0, 0.0), Size2::new(300.0, 300.0)))),
         transform: Transform2D::translation(100.0, 100.0),
-        // material: Some(material.clone()),
+        material: Some(material.clone()),
+        ..Default::default()
+    });
+
+    commands.spawn_bundle(SpriteBundle {
+        texture: sff_data.create_texture(None, TextureFlags(0))?,
+        sprite: Sprite {
+            size: size * 2.0,
+            offset,
+            flip_h: false,
+            ..Default::default()
+        },
+        transform: Transform2D::translation(100.0, 300.0),
+        material: None,
         ..Default::default()
     });
 
@@ -59,30 +77,30 @@ fn setup(
             surface_array: st.commit_to_arrays(),
         },
         transform: Transform2D::translation(100.0, 100.0),
-        // material: Some(material.clone()),
-        clip_rect: Some(ClipRect(Rect2::new(Point2::new(-80.0, 0.0), Size2::new(400.0, 40.0)))),
+        material: Some(material.clone()),
+        // clip_rect: Some(ClipRect(Rect2::new(Point2::new(-80.0, 0.0), Size2::new(400.0, 40.0)))),
         z_index: 10.into(),
         ..Default::default()
     });
 
-    let bitmap_font = sprite_system.load_font("res://data/font/arcade.def")?;
+    // let bitmap_font = sprite_system.load_font("res://data/font/arcade.def")?;
 
-    commands.spawn_bundle(TextBundle {
-        text: Text::new(
-            "ABC TEST\nSecond Line",
-            TextStyle {
-                font: bitmap_font.get_color_bank(1),
-                font_size: bitmap_font.size,
-                ..Default::default()
-            },
-            TextAlignment::default()
-        ),
-        transform: Transform2D::translation(100.0, 100.0),
-        ..Default::default()
-    });
+    // commands.spawn_bundle(TextBundle {
+    //     text: Text::new(
+    //         "ABC TEST\nSecond Line",
+    //         TextStyle {
+    //             font: bitmap_font.get_color_bank(1),
+    //             font_size: bitmap_font.size,
+    //             ..Default::default()
+    //         },
+    //         TextAlignment::default()
+    //     ),
+    //     transform: Transform2D::translation(100.0, 100.0),
+    //     ..Default::default()
+    // });
 
-    let sounds = read_sounds("res://data/data/system.snd").expect("Can't read system sound");
-    commands.insert_resource(sounds);
+    // let sounds = read_sounds("res://data/data/system.snd").expect("Can't read system sound");
+    // commands.insert_resource(sounds);
 
     // match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
     //     Ok(font) => {
@@ -115,7 +133,7 @@ struct Counter(i32);
 fn movement(
     input: Res<Input>,
     mut audio: ResMut<Audio>,
-    sounds: Res<Vec<WavSound>>,
+    // sounds: Res<Vec<WavSound>>,
     mut commands: Commands,
     mut query: Query<(Entity, &mut Transform2D, &mut Visible), With<Sprite>>,
     mut counter: Local<Counter>
@@ -135,22 +153,22 @@ fn movement(
         }
    }
 
-   if counter.0 % 10 == 0 {
-       let stream = sounds[0].stream.clone();
-       audio.play(stream);
-   }
+//    if counter.0 % 10 == 0 {
+//        let stream = sounds[0].stream.clone();
+//        audio.play(stream);
+//    }
 
-    if counter.0 % 5 == 0 {
-        for (_, _, mut visible) in query.iter_mut() {
-            visible.is_visible = !visible.is_visible;
-        }
-    }
+    // if counter.0 % 5 == 0 {
+    //     for (_, _, mut visible) in query.iter_mut() {
+    //         visible.is_visible = !visible.is_visible;
+    //     }
+    // }
 
-    if counter.0 > 600 {
-        for (entity, _, _) in query.iter_mut() {
-            commands.entity(entity).despawn();
-        }
-    }
+    // if counter.0 > 600 {
+    //     for (entity, _, _) in query.iter_mut() {
+    //         commands.entity(entity).despawn();
+    //     }
+    // }
 
     counter.0 = counter.0 + 1;
 }

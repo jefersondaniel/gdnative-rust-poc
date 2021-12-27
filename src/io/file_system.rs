@@ -67,6 +67,19 @@ impl FileSystem {
         Result::Ok(file)
     }
 
+    pub fn open_file_as_string(&self, filepath: &str) -> Result<String, DataError> {
+        let file = File::new();
+
+        if let Err(detail) = file.open(filepath, File::READ) {
+            return Result::Err(DataError::new(format!(
+              "Error opening file: {}",
+                detail
+            )));
+        }
+
+        Ok(file.get_as_text().to_string())
+    }
+
     pub fn open_text_file(&self, filepath: &str) -> Result<TextFile, DataError> {
         let result = self.open_file(filepath);
 

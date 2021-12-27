@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gdnative::{Ref, api::{Image, VisualServer, visual_server::TextureFlags}, core_types::{Rid, Size2, Point2}, prelude::Unique};
+use gdnative::{Ref, api::{Image, VisualServer, visual_server::TextureFlags}, core_types::{Rid, Size2, Variant}, prelude::Unique};
 
 pub struct Texture {
     pub rid: Rid,
@@ -27,6 +27,10 @@ impl Texture {
             rid: Rid::new(),
             size: Size2::new(0.0, 0.0)
         }
+    }
+
+    pub fn to_variant(&self) -> Variant {
+        Variant::from_rid(&self.rid)
     }
 }
 

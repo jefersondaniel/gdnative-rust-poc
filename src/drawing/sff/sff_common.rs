@@ -61,4 +61,22 @@ impl SffData {
             flags
         ))
     }
+
+    pub fn create_monochromatic_texture(&self, flags: TextureFlags) -> Arc<Texture> {
+        self.image.borrow().create_monochromatic_texture(flags)
+    }
+
+    pub fn create_palette_texture(&self, palette: Option<Rc<Palette>>) -> Arc<Texture> {
+        let mut raw_image = self.image.borrow().clone();
+
+        if let Some(palette_rc) = palette {
+            if !palette_rc.is_empty() {
+                if self.palindex == 0 {
+                    raw_image.color_table = Rc::clone(&palette_rc);
+                }
+            }
+        }
+
+        raw_image.create_palette_texture()
+    }
 }

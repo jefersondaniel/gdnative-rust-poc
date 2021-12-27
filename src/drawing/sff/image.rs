@@ -123,26 +123,35 @@ impl RawImage {
             self.w as i64,
             self.h as i64,
             false,
-            Image::FORMAT_L8,
+            Image::FORMAT_R8,
             dest,
         );
 
         Texture::allocate(image, flags)
     }
 
-    // pub fn create_palette_texture(&self) -> Arc<Texture> {
-    //     let dest = ByteArray::from_slice(self.pixels.as_slice());
+    pub fn create_palette_texture(&self) -> Arc<Texture> {
+        let width = self.color_table.colors.len();
+        let mut my_byte_array: Vec<u8> = Vec::with_capacity(width * 4);
 
-    //     let image = Image::new();
+        for color in self.color_table.colors.iter() {
+            my_byte_array.push(color.r);
+            my_byte_array.push(color.g);
+            my_byte_array.push(color.b);
+            my_byte_array.push(color.a);
+        }
 
-    //     image.create_from_data(
-    //         self.w as i64,
-    //         self.h as i64,
-    //         false,
-    //         Image::FORMAT_L8,
-    //         dest,
-    //     );
+        let dest = ByteArray::from_slice(my_byte_array.as_slice());
+        let image = Image::new();
 
-    //     Texture::allocate(image, flags)
-    // }
+        image.create_from_data(
+            width as i64,
+            1 as i64,
+            false,
+            Image::FORMAT_RGBA8,
+            dest,
+        );
+
+        Texture::allocate(image, TextureFlags(0))
+    }
 }

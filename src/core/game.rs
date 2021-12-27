@@ -31,8 +31,8 @@ impl Game {
                 .add_plugin(TransformPlugin::default())
                 .add_plugin(VisualServerPlugin::default())
                 .add_plugin(AudioServerPlugin::default())
-                // .add_plugin(DebugPlugin::default())
-                .add_plugin(MenuPlugin::default())
+                .add_plugin(DebugPlugin::default())
+                // .add_plugin(MenuPlugin::default())
                 .app
             )
         }
