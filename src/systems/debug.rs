@@ -36,12 +36,11 @@ fn setup(
         texture: texture.clone(),
         sprite: Sprite {
             size: size * 2.0,
-            offset,
+            // offset,
             flip_h: false,
             ..Default::default()
         },
-        // clip_rect: Some(ClipRect(Rect2::new(Point2::new(0.0, 0.0), Size2::new(300.0, 300.0)))),
-        transform: Transform2D::translation(100.0, 0.0),
+        transform: Transform2D::translation(100.0, 100.0),
         material: Some(material.clone()),
         ..Default::default()
     }).with_children(|parent| {
@@ -49,11 +48,12 @@ fn setup(
             texture: texture_with_palette.clone(),
             sprite: Sprite {
                 size: size * 2.0,
-                offset,
+                // offset,
                 flip_h: false,
                 ..Default::default()
             },
             transform: Transform2D::translation(0.0, 100.0),
+            clip_rect: ClipRect::global(Rect2::new(Point2::new(100.0, 200.0), Size2::new(50.0, 50.0))),
             material: None,
             ..Default::default()
         })
@@ -78,18 +78,18 @@ fn setup(
     st.add_uv(Vector2::new(0.0, 1.0)); // Bottom Right
     st.add_vertex(Vector3::new(100.0, 100.0, 0.0));
 
-    commands.spawn_bundle(Mesh2dBundle {
-        texture: texture.clone(),
-        mesh: Mesh2d {
-            primitive_type: PrimitiveType::TRIANGLES,
-            surface_array: st.commit_to_arrays(),
-        },
-        transform: Transform2D::translation(100.0, 100.0),
-        material: Some(material.clone()),
-        // clip_rect: Some(ClipRect(Rect2::new(Point2::new(-80.0, 0.0), Size2::new(400.0, 40.0)))),
-        z_index: 10.into(),
-        ..Default::default()
-    });
+    // commands.spawn_bundle(Mesh2dBundle {
+    //     texture: texture.clone(),
+    //     mesh: Mesh2d {
+    //         primitive_type: PrimitiveType::TRIANGLES,
+    //         surface_array: st.commit_to_arrays(),
+    //     },
+    //     transform: Transform2D::translation(100.0, 100.0),
+    //     material: Some(material.clone()),
+    //     // clip_rect: Some(ClipRect(Rect2::new(Point2::new(-80.0, 0.0), Size2::new(400.0, 40.0)))),
+    //     z_index: 10.into(),
+    //     ..Default::default()
+    // });
 
     // let bitmap_font = sprite_system.load_font("res://data/font/arcade.def")?;
 

@@ -27,7 +27,7 @@ pub struct TextBundle {
     pub back_buffer_copy: BackBufferCopy,
     pub transform: Transform2D,
     pub global_transform: GlobalTransform,
-    pub clip_rect: Option<ClipRect>,
+    pub clip_rect: ClipRect,
     pub material: Option<Arc<RwLock<Material>>>,
     pub z_index: ZIndex,
 }

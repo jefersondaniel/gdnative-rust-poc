@@ -1,7 +1,7 @@
 use bevy_ecs::{prelude::*};
 use bevy_app::{AppBuilder, Plugin};
 use bevy_transform::components::{Children, Parent};
-use gdnative::{api::VisualServer, core_types::{Rect2, Rid, Transform2D}};
+use gdnative::{api::VisualServer, core_types::{Rect2, Rid, Transform2D, Point2}};
 use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 use crate::systems::visual_server::enumerations::{VisualServerStage};
@@ -48,7 +48,27 @@ impl From<i32> for ZIndex {
     }
 }
 
-pub struct ClipRect(pub Rect2);
+#[derive(Default)]
+pub struct ClipRect {
+    pub rect: Rect2,
+    pub global: bool
+}
+
+impl ClipRect {
+    pub fn global(rect: Rect2) -> Self {
+        ClipRect {
+            rect,
+            global: true
+        }
+    }
+
+    pub fn local(rect: Rect2) -> Self {
+        ClipRect {
+            rect,
+            global: false
+        }
+    }
+}
 
 #[derive(Copy, Clone, Default)]
 pub struct GlobalTransform(pub Transform2D);
@@ -61,10 +81,11 @@ fn setup_canvas_item(
     canvas_item_state: &mut ResMut<CanvasItemState>,
     canvas_item: &mut CanvasItem,
     transform: &Transform2D,
+    global_transform: &GlobalTransform,
     visible: &Visible,
     back_buffer_copy: &BackBufferCopy,
     material: &Option<Arc<RwLock<Material>>>,
-    clip_rect: &Option<ClipRect>
+    clip_rect: &ClipRect
 ) {
     if canvas_item.rid.is_valid() {
         visual_server.canvas_item_clear(canvas_item.rid);
@@ -77,9 +98,20 @@ fn setup_canvas_item(
         visual_server.canvas_item_set_material(canvas_item.rid, material.read().unwrap().rid);
     }
 
-    if let Some(clip_rect) = clip_rect {
+    if clip_rect.rect.size.width > 0.0 {
+        let mut transformed_clip_rect = clip_rect.rect.clone();
+        let global_position = global_transform.0.transform_point(Point2::default());
+        let inverse_transform = Transform2D::translation(-global_position.x, -global_position.y);
+
+        if clip_rect.global {
+            transformed_clip_rect.origin = inverse_transform.transform_point(transformed_clip_rect.origin);
+        }
+
         visual_server.canvas_item_set_clip(canvas_item.rid, true);
-        visual_server.canvas_item_set_custom_rect(canvas_item.rid,true, clip_rect.0);
+        visual_server.canvas_item_set_custom_rect(canvas_item.rid,true, transformed_clip_rect);
+    } else {
+        visual_server.canvas_item_set_clip(canvas_item.rid, false);
+        visual_server.canvas_item_set_custom_rect(canvas_item.rid,false, Rect2::default());
     }
 
     visual_server.canvas_item_set_copy_to_backbuffer(canvas_item.rid, back_buffer_copy.enabled, back_buffer_copy.rect);
@@ -98,7 +130,7 @@ fn update_canvas_item(
     mut canvas_item_state:  ResMut<CanvasItemState>,
     parents_query: Query<(Entity, Option<&Children>), With<CanvasItem>>,
     mut query: Query<
-        (&mut CanvasItem, &Transform2D, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
+        (&mut CanvasItem, &Transform2D, &GlobalTransform, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &ClipRect),
         Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>, Changed<Mesh2d>, Changed<Text>)>
     >
 ) {
@@ -110,6 +142,7 @@ fn update_canvas_item(
         if let Ok((
             mut canvas_item,
             transform,
+            global_transform,
             visible,
             back_buffer_copy,
             material,
@@ -123,6 +156,7 @@ fn update_canvas_item(
                 &mut canvas_item_state,
                 &mut canvas_item,
                 transform,
+                global_transform,
                 visible,
                 back_buffer_copy,
                 material,
@@ -137,6 +171,7 @@ fn update_canvas_item(
                 if let Ok((
                     mut canvas_item,
                     transform,
+                    global_transform,
                     visible,
                     back_buffer_copy,
                     material,
@@ -150,6 +185,7 @@ fn update_canvas_item(
                         &mut canvas_item_state,
                         &mut canvas_item,
                         transform,
+                        global_transform,
                         visible,
                         back_buffer_copy,
                         material,

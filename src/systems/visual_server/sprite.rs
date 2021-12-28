@@ -30,7 +30,7 @@ pub struct SpriteBundle {
     pub back_buffer_copy: BackBufferCopy,
     pub transform: Transform2D,
     pub global_transform: GlobalTransform,
-    pub clip_rect: Option<ClipRect>,
+    pub clip_rect: ClipRect,
     pub material: Option<Arc<RwLock<Material>>>,
     pub z_index: ZIndex,
 }
@@ -46,7 +46,7 @@ impl Default for SpriteBundle {
             global_transform: GlobalTransform::default(),
             canvas_item: CanvasItem::default(),
             z_index: ZIndex::default(),
-            clip_rect: None,
+            clip_rect: ClipRect::default(),
             material: None,
         }
     }

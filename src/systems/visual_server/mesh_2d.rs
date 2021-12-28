@@ -42,7 +42,7 @@ pub struct Mesh2dBundle {
     pub transform: Transform2D,
     pub global_transform: GlobalTransform,
     pub material: Option<Arc<RwLock<Material>>>,
-    pub clip_rect: Option<ClipRect>,
+    pub clip_rect: ClipRect,
     pub back_buffer_copy: BackBufferCopy,
     pub z_index: ZIndex,
 }
@@ -59,7 +59,7 @@ impl Default for Mesh2dBundle {
             global_transform: GlobalTransform::default(),
             z_index: ZIndex::default(),
             material: None,
-            clip_rect: None
+            clip_rect: ClipRect::default()
         }
     }
 }
