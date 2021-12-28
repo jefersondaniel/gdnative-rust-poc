@@ -8,7 +8,7 @@ use gdnative::{api::VisualServer, core_types::{Color, Point2, Rect2, Rid, Size2}
 use crate::systems::visual_server::enumerations::{VisualServerStage};
 use crate::systems::visual_server::canvas_item::Visible;
 
-use super::canvas_item::{CanvasItem, ZIndex};
+use super::canvas_item::{CanvasItem, ZIndex, BackBufferCopy};
 use super::canvas_item::CanvasItemState;
 use super::canvas_item::ClipRect;
 use super::canvas_item::setup_canvas_item;
@@ -29,6 +29,7 @@ pub struct SpriteBundle {
     pub canvas_item: CanvasItem,
     pub texture: Arc<Texture>,
     pub visible: Visible,
+    pub back_buffer_copy: BackBufferCopy,
     pub transform: Transform2D,
     pub clip_rect: Option<ClipRect>,
     pub material: Option<Arc<RwLock<Material>>>,
@@ -41,6 +42,7 @@ impl Default for SpriteBundle {
             sprite: Sprite::default(),
             texture: Arc::new(Texture::invalid()),
             visible: Visible::default(),
+            back_buffer_copy: BackBufferCopy::default(),
             transform: Transform2D::default(),
             canvas_item: CanvasItem::default(),
             z_index: ZIndex::default(),
@@ -54,7 +56,7 @@ fn update_canvas_item(
     root_node: Res<RootNode>,
     mut canvas_item_state: ResMut<CanvasItemState>,
     mut query: Query<
-        (Entity, &Sprite, &mut CanvasItem, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
+        (Entity, &Sprite, &mut CanvasItem, &Arc<Texture>, &Transform2D, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
         Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>)>
     >
 ) {
@@ -67,6 +69,7 @@ fn update_canvas_item(
         texture,
         transform,
         visible,
+        back_buffer_copy,
         material,
         clip_rect
     ) in query.iter_mut() {
@@ -78,6 +81,7 @@ fn update_canvas_item(
             &mut canvas_item,
             transform,
             visible,
+            back_buffer_copy,
             material,
             clip_rect,
         );

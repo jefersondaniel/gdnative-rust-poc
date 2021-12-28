@@ -33,6 +33,12 @@ impl Default for Visible {
 }
 
 #[derive(Default)]
+pub struct BackBufferCopy {
+    pub enabled: bool,
+    pub rect: Rect2
+}
+
+#[derive(Default)]
 pub struct ZIndex(pub i64);
 
 impl From<i32> for ZIndex {
@@ -51,6 +57,7 @@ pub fn setup_canvas_item(
     canvas_item: &mut CanvasItem,
     transform: &Transform2D,
     visible: &Visible,
+    back_buffer_copy: &BackBufferCopy,
     material: &Option<Arc<RwLock<Material>>>,
     clip_rect: &Option<ClipRect>
 ) {
@@ -70,6 +77,7 @@ pub fn setup_canvas_item(
         visual_server.canvas_item_set_custom_rect(canvas_item.rid,true, clip_rect.0);
     }
 
+    visual_server.canvas_item_set_copy_to_backbuffer(canvas_item.rid, back_buffer_copy.enabled, back_buffer_copy.rect);
     visual_server.canvas_item_set_transform(canvas_item.rid, *transform);
     visual_server.canvas_item_set_visible(canvas_item.rid, visible.is_visible);
     visual_server.canvas_item_set_parent(canvas_item.rid, root_node.canvas_item_rid);

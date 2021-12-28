@@ -6,7 +6,7 @@ use bevy_app::{AppBuilder, Plugin};
 use gdnative::core_types::{Transform2D};
 use gdnative::api::{VisualServer};
 
-use crate::systems::visual_server::canvas_item::{Visible, ClipRect, setup_canvas_item, CanvasItemState, CanvasItem, ZIndex};
+use crate::systems::visual_server::canvas_item::{Visible, ClipRect, setup_canvas_item, CanvasItemState, CanvasItem, ZIndex, BackBufferCopy};
 use crate::systems::visual_server::material::Material;
 use crate::{systems::visual_server::{enumerations::VisualServerStage, root_node::RootNode, texture::Texture}};
 
@@ -24,6 +24,7 @@ pub struct TextBundle {
     pub vector_font_cache: VectorFontCache,
     pub canvas_item: CanvasItem,
     pub visible: Visible,
+    pub back_buffer_copy: BackBufferCopy,
     pub transform: Transform2D,
     pub clip_rect: Option<ClipRect>,
     pub material: Option<Arc<RwLock<Material>>>,
@@ -37,7 +38,7 @@ fn update_canvas_item(
     root_node: Res<RootNode>,
     mut canvas_item_state: ResMut<CanvasItemState>,
     mut query: Query<
-        (Entity, &Text, &mut VectorFontCache, &mut CanvasItem, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
+        (Entity, &Text, &mut VectorFontCache, &mut CanvasItem, &Transform2D, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
         Changed<Text>
     >
 ) {
@@ -50,6 +51,7 @@ fn update_canvas_item(
         mut canvas_item,
         transform,
         visible,
+        back_buffer_copy,
         material,
         clip_rect
     ) in query.iter_mut() {
@@ -61,6 +63,7 @@ fn update_canvas_item(
             &mut canvas_item,
             transform,
             visible,
+            back_buffer_copy,
             material,
             clip_rect,
         );

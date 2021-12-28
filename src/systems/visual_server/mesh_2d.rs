@@ -8,7 +8,7 @@ use std::sync::RwLock;
 use std::sync::Arc;
 use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Point2, Rect2, Rid, Size2}};
 
-use super::canvas_item::{ClipRect, CanvasItem, CanvasItemState, setup_canvas_item, ZIndex};
+use super::canvas_item::{ClipRect, CanvasItem, CanvasItemState, setup_canvas_item, ZIndex, BackBufferCopy};
 use super::{root_node::RootNode, texture::Texture};
 
 use crate::systems::visual_server::material::Material;
@@ -42,6 +42,7 @@ pub struct Mesh2dBundle {
     pub transform: Transform2D,
     pub material: Option<Arc<RwLock<Material>>>,
     pub clip_rect: Option<ClipRect>,
+    pub back_buffer_copy: BackBufferCopy,
     pub z_index: ZIndex,
 }
 
@@ -52,6 +53,7 @@ impl Default for Mesh2dBundle {
             mesh: Mesh2d::default(),
             texture: Arc::new(Texture::invalid()),
             visible: Visible::default(),
+            back_buffer_copy: BackBufferCopy::default(),
             transform: Transform2D::default(),
             z_index: ZIndex::default(),
             material: None,
@@ -65,7 +67,7 @@ fn update_meshes(
     mut rid_map: ResMut<RidMap>,
     mut canvas_item_state: ResMut<CanvasItemState>,
     mut query: Query<
-        (Entity, &Mesh2d, &mut CanvasItem, &Arc<Texture>, &Transform2D, &Visible, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
+        (Entity, &Mesh2d, &mut CanvasItem, &Arc<Texture>, &Transform2D, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
         Or<(Changed<Mesh2d>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>)>
     >
 ) {
@@ -78,6 +80,7 @@ fn update_meshes(
         texture,
         transform,
         visible,
+        back_buffer_copy,
         material,
         clip_rect
     ) in query.iter_mut() {
@@ -89,6 +92,7 @@ fn update_meshes(
             &mut canvas_item,
             transform,
             visible,
+            back_buffer_copy,
             material,
             clip_rect,
         );
