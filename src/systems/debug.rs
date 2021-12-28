@@ -1,10 +1,13 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
+use bevy_transform::hierarchy::BuildChildren;
 use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3, Transform2D, ToVariant}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}, audio::{snd_parser::read_sounds, structs::WavSound}, io::file_system::FileSystem};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}, font_loader::load_dynamic_font}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::{ClipRect, ZIndex}}, audio::{snd_parser::read_sounds, structs::WavSound}, io::file_system::FileSystem};
 
-use super::{log::handle_error, visual_server::{canvas_item::Visible}, input::Input, audio_server::audio::Audio};
+use super::{log::handle_error, visual_server::{canvas_item::{Visible}}, input::Input, audio_server::audio::Audio};
+
+struct TestComponent;
 
 fn setup(
     mut commands: Commands,
@@ -27,6 +30,7 @@ fn setup(
     material_write.set_shader_param("blend_type", 1.to_variant());
     material_write.set_shader_param("blend_source", 1.0.to_variant());
     material_write.set_shader_param("blend_destination", 1.0.to_variant());
+    let texture_with_palette = sff_data.create_texture(None, TextureFlags(0))?;
 
     commands.spawn_bundle(SpriteBundle {
         texture: texture.clone(),
@@ -37,22 +41,23 @@ fn setup(
             ..Default::default()
         },
         // clip_rect: Some(ClipRect(Rect2::new(Point2::new(0.0, 0.0), Size2::new(300.0, 300.0)))),
-        transform: Transform2D::translation(100.0, 100.0),
+        transform: Transform2D::translation(100.0, 0.0),
         material: Some(material.clone()),
         ..Default::default()
-    });
-
-    commands.spawn_bundle(SpriteBundle {
-        texture: sff_data.create_texture(None, TextureFlags(0))?,
-        sprite: Sprite {
-            size: size * 2.0,
-            offset,
-            flip_h: false,
+    }).with_children(|parent| {
+        parent.spawn_bundle(SpriteBundle {
+            texture: texture_with_palette.clone(),
+            sprite: Sprite {
+                size: size * 2.0,
+                offset,
+                flip_h: false,
+                ..Default::default()
+            },
+            transform: Transform2D::translation(0.0, 100.0),
+            material: None,
             ..Default::default()
-        },
-        transform: Transform2D::translation(100.0, 300.0),
-        material: None,
-        ..Default::default()
+        })
+        .insert(TestComponent);
     });
 
     let st = SurfaceTool::new();
@@ -105,27 +110,28 @@ fn setup(
     // let sounds = read_sounds("res://data/data/system.snd").expect("Can't read system sound");
     // commands.insert_resource(sounds);
 
-    // match font_loader.load_dynamic_font("res://data/inconsolata.ttf") {
-    //     Ok(font) => {
-    //         commands.spawn_bundle(TextBundle {
-    //             text: Text::new(
-    //                 "ABC 123",
-    //                 TextStyle {
-    //                     font,
-    //                     font_size: 32,
-    //                     color: Color::rgba(1.0, 0.0, 0.0, 1.0),
-    //                     ..Default::default()
-    //                 },
-    //                 TextAlignment::default()
-    //             ),
-    //             transform: Transform2D::translation(100.0, 100.0),
-    //             ..Default::default()
-    //         });
-    //     },
-    //     Err(error) => {
-    //         godot_print!("Cant load font: {}", error);
-    //     }
-    // }
+    match load_dynamic_font("res://resources/roboto.ttf") {
+        Ok(font) => {
+            commands.spawn_bundle(TextBundle {
+                text: Text::new(
+                    "ABC 123",
+                    TextStyle {
+                        font,
+                        font_size: 32,
+                        color: Color::rgba(1.0, 0.0, 0.0, 1.0),
+                        ..Default::default()
+                    },
+                    TextAlignment::default()
+                ),
+                z_index: ZIndex(10),
+                transform: Transform2D::translation(100.0, 100.0),
+                ..Default::default()
+            });
+        },
+        Err(error) => {
+            godot_print!("Cant load font: {}", error);
+        }
+    }
 
     Ok(())
 }

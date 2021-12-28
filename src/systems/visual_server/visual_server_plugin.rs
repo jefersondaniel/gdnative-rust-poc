@@ -11,7 +11,8 @@ impl Plugin for VisualServerPlugin {
     fn build(&self, builder: &mut AppBuilder) {
         builder
             .add_stage_after(CoreStage::Update, VisualServerStage::Remove, SystemStage::single_threaded())
-            .add_stage_after(VisualServerStage::Remove, VisualServerStage::Update, SystemStage::single_threaded())
+            .add_stage_after(VisualServerStage::Remove, VisualServerStage::CanvasItemUpdate, SystemStage::single_threaded())
+            .add_stage_after(VisualServerStage::CanvasItemUpdate, VisualServerStage::Update, SystemStage::single_threaded())
             .add_stage_after(VisualServerStage::Update, VisualServerStage::Transform, SystemStage::single_threaded())
             .add_plugin(CanvasItemPlugin::default())
             .add_plugin(SpritePlugin::default())

@@ -1,11 +1,12 @@
 use bevy_ecs::{prelude::*};
 use bevy_app::{AppBuilder, Plugin};
+use bevy_transform::components::{Children, Parent};
 use gdnative::{api::VisualServer, core_types::{Rect2, Rid, Transform2D}};
 use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 use crate::systems::visual_server::enumerations::{VisualServerStage};
 
-use super::{material::Material, root_node::RootNode};
+use super::{material::Material, root_node::RootNode, sprite::Sprite, texture::Texture, mesh_2d::Mesh2d, text::common::Text};
 
 #[derive(Copy, Clone)]
 pub struct CanvasItem {
@@ -49,9 +50,13 @@ impl From<i32> for ZIndex {
 
 pub struct ClipRect(pub Rect2);
 
-pub fn setup_canvas_item(
-    entity: &Entity,
+#[derive(Copy, Clone, Default)]
+pub struct GlobalTransform(pub Transform2D);
+
+fn setup_canvas_item(
     visual_server: &VisualServer,
+    parent_canvas_item: &Option<CanvasItem>,
+    entity: &Entity,
     root_node: &Res<RootNode>,
     canvas_item_state: &mut ResMut<CanvasItemState>,
     canvas_item: &mut CanvasItem,
@@ -80,7 +85,80 @@ pub fn setup_canvas_item(
     visual_server.canvas_item_set_copy_to_backbuffer(canvas_item.rid, back_buffer_copy.enabled, back_buffer_copy.rect);
     visual_server.canvas_item_set_transform(canvas_item.rid, *transform);
     visual_server.canvas_item_set_visible(canvas_item.rid, visible.is_visible);
-    visual_server.canvas_item_set_parent(canvas_item.rid, root_node.canvas_item_rid);
+
+    if let Some(parent_canvas_item) = parent_canvas_item {
+        visual_server.canvas_item_set_parent(canvas_item.rid, parent_canvas_item.rid);
+    } else {
+        visual_server.canvas_item_set_parent(canvas_item.rid, root_node.canvas_item_rid);
+    }
+}
+
+fn update_canvas_item(
+    root_node: Res<RootNode>,
+    mut canvas_item_state:  ResMut<CanvasItemState>,
+    parents_query: Query<(Entity, Option<&Children>), With<CanvasItem>>,
+    mut query: Query<
+        (&mut CanvasItem, &Transform2D, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
+        Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>, Changed<Mesh2d>, Changed<Text>)>
+    >
+) {
+    let visual_server = unsafe { VisualServer::godot_singleton() };
+
+    for (parent, children) in parents_query.iter() {
+        let mut parent_canvas_item: Option<CanvasItem> = None;
+
+        if let Ok((
+            mut canvas_item,
+            transform,
+            visible,
+            back_buffer_copy,
+            material,
+            clip_rect
+        )) = query.get_mut(parent) {
+            setup_canvas_item(
+                visual_server,
+                &None,
+                &parent,
+                &root_node,
+                &mut canvas_item_state,
+                &mut canvas_item,
+                transform,
+                visible,
+                back_buffer_copy,
+                material,
+                clip_rect,
+            );
+
+            parent_canvas_item = Some(canvas_item.clone());
+        }
+
+        if let Some(children) = children {
+            for child in children.iter() {
+                if let Ok((
+                    mut canvas_item,
+                    transform,
+                    visible,
+                    back_buffer_copy,
+                    material,
+                    clip_rect
+                )) = query.get_mut(*child) {
+                    setup_canvas_item(
+                        visual_server,
+                        &parent_canvas_item,
+                        &parent,
+                        &root_node,
+                        &mut canvas_item_state,
+                        &mut canvas_item,
+                        transform,
+                        visible,
+                        back_buffer_copy,
+                        material,
+                        clip_rect,
+                    );
+                }
+            }
+        }
+    }
 }
 
 fn transform_canvas_item(
@@ -130,6 +208,73 @@ fn remove_canvas_item(
     }
 }
 
+fn transform_propagate_system(
+    mut root_query: Query<
+        (Entity, Option<&Children>, &Transform2D, &mut GlobalTransform),
+        Without<Parent>,
+    >,
+    mut transform_query: Query<(&Transform2D, &mut GlobalTransform), With<Parent>>,
+    changed_transform_query: Query<Entity, Changed<Transform2D>>,
+    children_query: Query<Option<&Children>, (With<Parent>, With<GlobalTransform>)>,
+) {
+    for (entity, children, transform, mut global_transform) in root_query.iter_mut() {
+        let mut changed = false;
+
+        if changed_transform_query.get(entity).is_ok() {
+            *global_transform = GlobalTransform(*transform);
+            changed = true;
+        }
+
+        if let Some(children) = children {
+            for child in children.iter() {
+                propagate_recursive(
+                    &global_transform,
+                    &changed_transform_query,
+                    &mut transform_query,
+                    &children_query,
+                    *child,
+                    changed,
+                );
+            }
+        }
+    }
+}
+
+fn propagate_recursive(
+    parent: &GlobalTransform,
+    changed_transform_query: &Query<Entity, Changed<Transform2D>>,
+    transform_query: &mut Query<(&Transform2D, &mut GlobalTransform), With<Parent>>,
+    children_query: &Query<Option<&Children>, (With<Parent>, With<GlobalTransform>)>,
+    entity: Entity,
+    mut changed: bool,
+) {
+    changed |= changed_transform_query.get(entity).is_ok();
+
+    let global_matrix = {
+        if let Ok((transform, mut global_transform)) = transform_query.get_mut(entity) {
+            if changed {
+                *global_transform = GlobalTransform(parent.0.then(transform));
+            }
+            *global_transform
+        } else {
+            return;
+        }
+    };
+
+    if let Ok(Some(children)) = children_query.get(entity) {
+        for child in children.iter() {
+            propagate_recursive(
+                &global_matrix,
+                changed_transform_query,
+                transform_query,
+                children_query,
+                *child,
+                changed,
+            );
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct CanvasItemPlugin;
 
@@ -138,6 +283,8 @@ impl Plugin for CanvasItemPlugin {
         builder
             .insert_resource(CanvasItemState { canvas_item_rids: HashMap::new() })
             .add_system_to_stage(VisualServerStage::Remove, remove_canvas_item.system())
+            .add_system_to_stage(VisualServerStage::Remove, transform_propagate_system.system())
+            .add_system_to_stage(VisualServerStage::CanvasItemUpdate, update_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, zindex_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, hide_canvas_item.system());

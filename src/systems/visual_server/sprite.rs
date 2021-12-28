@@ -8,11 +8,9 @@ use gdnative::{api::VisualServer, core_types::{Color, Point2, Rect2, Rid, Size2}
 use crate::systems::visual_server::enumerations::{VisualServerStage};
 use crate::systems::visual_server::canvas_item::Visible;
 
-use super::canvas_item::{CanvasItem, ZIndex, BackBufferCopy};
-use super::canvas_item::CanvasItemState;
+use super::canvas_item::{CanvasItem, ZIndex, BackBufferCopy, GlobalTransform};
 use super::canvas_item::ClipRect;
-use super::canvas_item::setup_canvas_item;
-use super::{root_node::RootNode, texture::Texture, material::Material};
+use super::{texture::Texture, material::Material};
 
 #[derive(Clone, Default)]
 pub struct Sprite {
@@ -31,6 +29,7 @@ pub struct SpriteBundle {
     pub visible: Visible,
     pub back_buffer_copy: BackBufferCopy,
     pub transform: Transform2D,
+    pub global_transform: GlobalTransform,
     pub clip_rect: Option<ClipRect>,
     pub material: Option<Arc<RwLock<Material>>>,
     pub z_index: ZIndex,
@@ -44,6 +43,7 @@ impl Default for SpriteBundle {
             visible: Visible::default(),
             back_buffer_copy: BackBufferCopy::default(),
             transform: Transform2D::default(),
+            global_transform: GlobalTransform::default(),
             canvas_item: CanvasItem::default(),
             z_index: ZIndex::default(),
             clip_rect: None,
@@ -52,40 +52,14 @@ impl Default for SpriteBundle {
     }
 }
 
-fn update_canvas_item(
-    root_node: Res<RootNode>,
-    mut canvas_item_state: ResMut<CanvasItemState>,
-    mut query: Query<
-        (Entity, &Sprite, &mut CanvasItem, &Arc<Texture>, &Transform2D, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
-        Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>)>
-    >
-) {
+fn update_sprite(mut query: Query<
+    (&CanvasItem, &Sprite, &Arc<Texture>),
+    // NOTE: Change detection here must be in sync with canvas_item.rs
+    Or<(Changed<Sprite>, Changed<Arc<Texture>>)>
+>) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
-    for (
-        entity,
-        sprite,
-        mut canvas_item,
-        texture,
-        transform,
-        visible,
-        back_buffer_copy,
-        material,
-        clip_rect
-    ) in query.iter_mut() {
-        setup_canvas_item(
-            &entity,
-            visual_server,
-            &root_node,
-            &mut canvas_item_state,
-            &mut canvas_item,
-            transform,
-            visible,
-            back_buffer_copy,
-            material,
-            clip_rect,
-        );
-
+    for (canvas_item, sprite, texture) in query.iter() {
         let mut dst_rect = Rect2::new(
             sprite.offset,
             sprite.size
@@ -123,6 +97,6 @@ pub struct SpritePlugin;
 impl Plugin for SpritePlugin {
     fn build(&self, builder: &mut AppBuilder) {
         builder
-            .add_system_to_stage(VisualServerStage::Update, update_canvas_item.system());
+            .add_system_to_stage(VisualServerStage::Update, update_sprite.system());
     }
 }

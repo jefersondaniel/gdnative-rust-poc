@@ -6,9 +6,9 @@ use gdnative::core_types::{Transform2D};
 use std::collections::{HashSet,HashMap};
 use std::sync::RwLock;
 use std::sync::Arc;
-use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Point2, Rect2, Rid, Size2}};
+use gdnative::{api::VisualServer, core_types::{Color, VariantArray, Rid}};
 
-use super::canvas_item::{ClipRect, CanvasItem, CanvasItemState, setup_canvas_item, ZIndex, BackBufferCopy};
+use super::canvas_item::{ClipRect, CanvasItem, ZIndex, BackBufferCopy, GlobalTransform};
 use super::{root_node::RootNode, texture::Texture};
 
 use crate::systems::visual_server::material::Material;
@@ -40,6 +40,7 @@ pub struct Mesh2dBundle {
     pub texture: Arc<Texture>,
     pub visible: Visible,
     pub transform: Transform2D,
+    pub global_transform: GlobalTransform,
     pub material: Option<Arc<RwLock<Material>>>,
     pub clip_rect: Option<ClipRect>,
     pub back_buffer_copy: BackBufferCopy,
@@ -55,6 +56,7 @@ impl Default for Mesh2dBundle {
             visible: Visible::default(),
             back_buffer_copy: BackBufferCopy::default(),
             transform: Transform2D::default(),
+            global_transform: GlobalTransform::default(),
             z_index: ZIndex::default(),
             material: None,
             clip_rect: None
@@ -63,40 +65,21 @@ impl Default for Mesh2dBundle {
 }
 
 fn update_meshes(
-    root_node: Res<RootNode>,
     mut rid_map: ResMut<RidMap>,
-    mut canvas_item_state: ResMut<CanvasItemState>,
-    mut query: Query<
-        (Entity, &Mesh2d, &mut CanvasItem, &Arc<Texture>, &Transform2D, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &Option<ClipRect>),
-        Or<(Changed<Mesh2d>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>)>
+    query: Query<
+        (Entity, &CanvasItem, &Mesh2d, &Arc<Texture>),
+        // NOTE: Change detection here must be in sync with canvas_item.rs
+        Or<(Changed<Mesh2d>, Changed<Arc<Texture>>)>
     >
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
     for (
         entity,
+        canvas_item,
         mesh_2d,
-        mut canvas_item,
-        texture,
-        transform,
-        visible,
-        back_buffer_copy,
-        material,
-        clip_rect
-    ) in query.iter_mut() {
-        setup_canvas_item(
-            &entity,
-            visual_server,
-            &root_node,
-            &mut canvas_item_state,
-            &mut canvas_item,
-            transform,
-            visible,
-            back_buffer_copy,
-            material,
-            clip_rect,
-        );
-
+        texture
+    ) in query.iter() {
         let mesh_rid = match rid_map.meshes.get(&entity.id()) {
             Some(value) => {
                 visual_server.mesh_clear(*value);
