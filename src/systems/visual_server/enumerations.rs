@@ -5,6 +5,5 @@ pub enum VisualServerStage {
     Remove,
     CanvasItemUpdate,
     Update,
-    Transform,
-    GlobalTransform
+    Transform
 }

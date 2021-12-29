@@ -69,7 +69,7 @@ fn update_meshes(
     query: Query<
         (Entity, &CanvasItem, &Mesh2d, &Arc<Texture>),
         // NOTE: Change detection here must be in sync with canvas_item.rs
-        Or<(Changed<Mesh2d>, Changed<Arc<Texture>>)>
+        Or<(Changed<Mesh2d>, Changed<Arc<Texture>>, Changed<CanvasItem>)>
     >
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };

@@ -1,7 +1,7 @@
 use bevy_ecs::{prelude::*};
 use bevy_app::{AppBuilder, Plugin};
 use bevy_transform::components::{Children, Parent};
-use gdnative::{api::VisualServer, core_types::{Rect2, Rid, Transform2D, Point2}};
+use gdnative::{api::VisualServer, core_types::{Rect2, Rid, Transform2D, Point2, Size2}};
 use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 use crate::systems::visual_server::enumerations::{VisualServerStage};
@@ -10,7 +10,8 @@ use super::{material::Material, root_node::RootNode, sprite::Sprite, texture::Te
 
 #[derive(Copy, Clone)]
 pub struct CanvasItem {
-    pub rid: Rid
+    pub rid: Rid,
+    pub version: u64
 }
 
 pub struct CanvasItemState {
@@ -21,6 +22,7 @@ impl Default for CanvasItem {
     fn default() -> Self {
         CanvasItem {
             rid: Rid::new(),
+            version: 0
         }
     }
 }
@@ -73,13 +75,25 @@ impl ClipRect {
 #[derive(Copy, Clone, Default)]
 pub struct GlobalTransform(pub Transform2D);
 
+#[derive(Default, Bundle)]
+pub struct CanvasItemBundle {
+    pub canvas_item: CanvasItem,
+    pub visible: Visible,
+    pub back_buffer_copy: BackBufferCopy,
+    pub transform: Transform2D,
+    pub global_transform: GlobalTransform,
+    pub clip_rect: ClipRect,
+    pub material: Option<Arc<RwLock<Material>>>,
+    pub z_index: ZIndex,
+}
+
 fn setup_canvas_item(
     visual_server: &VisualServer,
     parent_canvas_item: &Option<CanvasItem>,
     entity: &Entity,
     root_node: &Res<RootNode>,
     canvas_item_state: &mut ResMut<CanvasItemState>,
-    canvas_item: &mut CanvasItem,
+    canvas_item: &mut Mut<CanvasItem>,
     back_buffer_copy: &BackBufferCopy,
     material: &Option<Arc<RwLock<Material>>>
 ) {
@@ -89,6 +103,8 @@ fn setup_canvas_item(
         canvas_item.rid = visual_server.canvas_item_create();
         canvas_item_state.canvas_item_rids.insert(entity.id(), canvas_item.rid);
     }
+
+    canvas_item.version += 1; // Other system watches for this to know they need to update the commands
 
     if let Some(material) = material {
         visual_server.canvas_item_set_material(canvas_item.rid, material.read().unwrap().rid);
@@ -109,7 +125,7 @@ fn update_canvas_item(
     parents_query: Query<(Entity, Option<&Children>), With<CanvasItem>>,
     mut query: Query<
         (&mut CanvasItem, &BackBufferCopy, &Option<Arc<RwLock<Material>>>),
-        Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<Mesh2d>, Changed<Text>)>
+        Or<(Added<CanvasItem>, Changed<Sprite>, Changed<Arc<Texture>>, Changed<Mesh2d>, Changed<Text>, Changed<ClipRect>)>
     >
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
@@ -160,7 +176,7 @@ fn update_canvas_item(
 }
 
 fn transform_canvas_item(
-    query: Query<(Entity, &CanvasItem, &Transform2D), Changed<Transform2D>>
+    query: Query<(Entity, &CanvasItem, &Transform2D), Or<(Changed<Transform2D>, Changed<CanvasItem>)>>
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
@@ -170,7 +186,7 @@ fn transform_canvas_item(
 }
 
 fn clip_canvas_item(
-    query: Query<(Entity, &CanvasItem, &GlobalTransform, &ClipRect), Or<(Changed<Transform2D>, Changed<ClipRect>)>>
+    query: Query<(Entity, &CanvasItem, &GlobalTransform, &ClipRect), Or<(Changed<Transform2D>, Changed<ClipRect>, Changed<CanvasItem>)>>
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
@@ -186,15 +202,12 @@ fn clip_canvas_item(
 
             visual_server.canvas_item_set_clip(canvas_item.rid, true);
             visual_server.canvas_item_set_custom_rect(canvas_item.rid,true, transformed_clip_rect);
-        } else {
-            visual_server.canvas_item_set_clip(canvas_item.rid, false);
-            visual_server.canvas_item_set_custom_rect(canvas_item.rid,false, Rect2::default());
         }
     }
 }
 
 fn zindex_canvas_item(
-    query: Query<(Entity, &CanvasItem, &ZIndex), Changed<ZIndex>>
+    query: Query<(Entity, &CanvasItem, &ZIndex), Or<(Changed<ZIndex>, Changed<CanvasItem>)>>
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
@@ -203,7 +216,7 @@ fn zindex_canvas_item(
     }
 }
 
-fn hide_canvas_item(query: Query<(Entity, &CanvasItem, &Visible), Changed<Visible>>) {
+fn hide_canvas_item(query: Query<(Entity, &CanvasItem, &Visible), Or<(Changed<Visible>, Changed<CanvasItem>)>>) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
     for (_, canvas_item, visible) in query.iter() {

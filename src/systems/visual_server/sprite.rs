@@ -52,10 +52,10 @@ impl Default for SpriteBundle {
     }
 }
 
-fn update_sprite(mut query: Query<
+fn update_sprite(query: Query<
     (&CanvasItem, &Sprite, &Arc<Texture>),
     // NOTE: Change detection here must be in sync with canvas_item.rs
-    Or<(Changed<Sprite>, Changed<Arc<Texture>>)>
+    Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<CanvasItem>)>
 >) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
