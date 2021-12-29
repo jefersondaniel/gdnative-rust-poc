@@ -1,27 +1,33 @@
-use std::sync::Arc;
-
 use bevy_ecs::prelude::*;
-use bevy_transform::{hierarchy::BuildChildren, components::Parent};
-use gdnative::core_types::{Transform2D, Vector2, Point2};
+use bevy_transform::{hierarchy::BuildChildren};
+use gdnative::{core_types::{Transform2D, Vector2, Point2}};
 
-use crate::{core::{error::DataError, configuration::Configuration}, menus::title_screen::TitleScreen, backgrounds::{background::Background, static_background::StaticBackground}, systems::visual_server::texture::Texture};
+use crate::{core::{error::DataError, configuration::Configuration}, menus::title_screen::TitleScreen, backgrounds::{static_background::StaticBackground}, systems::visual_server::canvas_item::CanvasItemBundle};
+
+use super::setup_layers::HudLayer;
 
 #[derive(Default)]
 struct Screen;
 
 pub fn show_title_screen(
     mut commands: Commands,
+    hud_layer_query: Query<Entity, With<HudLayer>>,
     title_screen: Res<TitleScreen>,
     configuration: Res<Configuration>
 ) -> Result<(), DataError> {
     let background_group = &title_screen.non_combat_screen.background_group;
+    let hud_entity = hud_layer_query.single().expect("HudLayer not found");
 
-    commands.spawn()
-        .insert(Screen::default())
-        .with_children(|parent| {
-            for background in background_group.backgrounds.iter() {
-                background.render(parent, &configuration);
-            }
+    commands
+        .entity(hud_entity)
+        .with_children(|layer| {
+            layer.spawn_bundle(CanvasItemBundle::default())
+                .insert(Screen::default())
+                .with_children(|screen| {
+                    for background in background_group.backgrounds.iter() {
+                        background.render(screen, &configuration);
+                    }
+                });
         });
 
     Ok(())

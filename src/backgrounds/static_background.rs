@@ -51,8 +51,7 @@ impl StaticBackground {
                 let adjustment = (Vector2::new(size.width, size.height) + tilingspacing).component_mul(Vector2::new(x as f32, y as f32));
                 let location = self.base_background.startlocation
                     + adjustment
-                    - Vector2::new(self.sprite.offset.x, self.sprite.offset.y)
-                    + Vector2::new(configuration.screen_size.width / 2.0, 0.0);
+                    - Vector2::new(self.sprite.offset.x, self.sprite.offset.y);
 
                 // First Triangle
                 st.add_uv(Vector2::new(0.0, 0.0)); // Top Left
