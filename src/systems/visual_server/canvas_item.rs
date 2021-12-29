@@ -80,12 +80,8 @@ fn setup_canvas_item(
     root_node: &Res<RootNode>,
     canvas_item_state: &mut ResMut<CanvasItemState>,
     canvas_item: &mut CanvasItem,
-    transform: &Transform2D,
-    global_transform: &GlobalTransform,
-    visible: &Visible,
     back_buffer_copy: &BackBufferCopy,
-    material: &Option<Arc<RwLock<Material>>>,
-    clip_rect: &ClipRect
+    material: &Option<Arc<RwLock<Material>>>
 ) {
     if canvas_item.rid.is_valid() {
         visual_server.canvas_item_clear(canvas_item.rid);
@@ -98,25 +94,7 @@ fn setup_canvas_item(
         visual_server.canvas_item_set_material(canvas_item.rid, material.read().unwrap().rid);
     }
 
-    if clip_rect.rect.size.width > 0.0 {
-        let mut transformed_clip_rect = clip_rect.rect.clone();
-        let global_position = global_transform.0.transform_point(Point2::default());
-        let inverse_transform = Transform2D::translation(-global_position.x, -global_position.y);
-
-        if clip_rect.global {
-            transformed_clip_rect.origin = inverse_transform.transform_point(transformed_clip_rect.origin);
-        }
-
-        visual_server.canvas_item_set_clip(canvas_item.rid, true);
-        visual_server.canvas_item_set_custom_rect(canvas_item.rid,true, transformed_clip_rect);
-    } else {
-        visual_server.canvas_item_set_clip(canvas_item.rid, false);
-        visual_server.canvas_item_set_custom_rect(canvas_item.rid,false, Rect2::default());
-    }
-
     visual_server.canvas_item_set_copy_to_backbuffer(canvas_item.rid, back_buffer_copy.enabled, back_buffer_copy.rect);
-    visual_server.canvas_item_set_transform(canvas_item.rid, *transform);
-    visual_server.canvas_item_set_visible(canvas_item.rid, visible.is_visible);
 
     if let Some(parent_canvas_item) = parent_canvas_item {
         visual_server.canvas_item_set_parent(canvas_item.rid, parent_canvas_item.rid);
@@ -130,8 +108,8 @@ fn update_canvas_item(
     mut canvas_item_state:  ResMut<CanvasItemState>,
     parents_query: Query<(Entity, Option<&Children>), With<CanvasItem>>,
     mut query: Query<
-        (&mut CanvasItem, &Transform2D, &GlobalTransform, &Visible, &BackBufferCopy, &Option<Arc<RwLock<Material>>>, &ClipRect),
-        Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<Option<ClipRect>>, Changed<Mesh2d>, Changed<Text>)>
+        (&mut CanvasItem, &BackBufferCopy, &Option<Arc<RwLock<Material>>>),
+        Or<(Changed<Sprite>, Changed<Arc<Texture>>, Changed<Mesh2d>, Changed<Text>)>
     >
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
@@ -141,12 +119,8 @@ fn update_canvas_item(
 
         if let Ok((
             mut canvas_item,
-            transform,
-            global_transform,
-            visible,
             back_buffer_copy,
             material,
-            clip_rect
         )) = query.get_mut(parent) {
             setup_canvas_item(
                 visual_server,
@@ -155,12 +129,8 @@ fn update_canvas_item(
                 &root_node,
                 &mut canvas_item_state,
                 &mut canvas_item,
-                transform,
-                global_transform,
-                visible,
                 back_buffer_copy,
                 material,
-                clip_rect,
             );
 
             parent_canvas_item = Some(canvas_item.clone());
@@ -170,12 +140,8 @@ fn update_canvas_item(
             for child in children.iter() {
                 if let Ok((
                     mut canvas_item,
-                    transform,
-                    global_transform,
-                    visible,
                     back_buffer_copy,
                     material,
-                    clip_rect
                 )) = query.get_mut(*child) {
                     setup_canvas_item(
                         visual_server,
@@ -184,12 +150,8 @@ fn update_canvas_item(
                         &root_node,
                         &mut canvas_item_state,
                         &mut canvas_item,
-                        transform,
-                        global_transform,
-                        visible,
                         back_buffer_copy,
                         material,
-                        clip_rect,
                     );
                 }
             }
@@ -204,6 +166,30 @@ fn transform_canvas_item(
 
     for (_, canvas_item, transform) in query.iter() {
         visual_server.canvas_item_set_transform(canvas_item.rid, *transform);
+    }
+}
+
+fn clip_canvas_item(
+    query: Query<(Entity, &CanvasItem, &GlobalTransform, &ClipRect), Or<(Changed<Transform2D>, Changed<ClipRect>)>>
+) {
+    let visual_server = unsafe { VisualServer::godot_singleton() };
+
+    for (_, canvas_item, global_transform, clip_rect) in query.iter() {
+        if clip_rect.rect.size.width > 0.0 {
+            let mut transformed_clip_rect = clip_rect.rect.clone();
+            let global_position = global_transform.0.transform_point(Point2::default());
+            let inverse_transform = Transform2D::translation(-global_position.x, -global_position.y);
+
+            if clip_rect.global {
+                transformed_clip_rect.origin = inverse_transform.transform_point(transformed_clip_rect.origin);
+            }
+
+            visual_server.canvas_item_set_clip(canvas_item.rid, true);
+            visual_server.canvas_item_set_custom_rect(canvas_item.rid,true, transformed_clip_rect);
+        } else {
+            visual_server.canvas_item_set_clip(canvas_item.rid, false);
+            visual_server.canvas_item_set_custom_rect(canvas_item.rid,false, Rect2::default());
+        }
     }
 }
 
@@ -322,6 +308,7 @@ impl Plugin for CanvasItemPlugin {
             .add_system_to_stage(VisualServerStage::Remove, transform_propagate_system.system())
             .add_system_to_stage(VisualServerStage::CanvasItemUpdate, update_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system())
+            .add_system_to_stage(VisualServerStage::Transform, clip_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, zindex_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, hide_canvas_item.system());
     }

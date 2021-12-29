@@ -14,6 +14,7 @@ impl Plugin for VisualServerPlugin {
             .add_stage_after(VisualServerStage::Remove, VisualServerStage::CanvasItemUpdate, SystemStage::single_threaded())
             .add_stage_after(VisualServerStage::CanvasItemUpdate, VisualServerStage::Update, SystemStage::single_threaded())
             .add_stage_after(VisualServerStage::Update, VisualServerStage::Transform, SystemStage::single_threaded())
+            .add_stage_after(VisualServerStage::Transform, VisualServerStage::GlobalTransform, SystemStage::single_threaded())
             .add_plugin(CanvasItemPlugin::default())
             .add_plugin(SpritePlugin::default())
             .add_plugin(TextPlugin::default())
