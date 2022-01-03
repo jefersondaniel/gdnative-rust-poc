@@ -39,8 +39,7 @@ impl FontMap {
                     ..Default::default()
                 },
                 TextAlignment {
-                    // horizontal: print_data.justification.into(),
-                    horizontal: HorizontalAlign::Right,
+                    horizontal: print_data.justification.into(),
                     ..Default::default()
                 },
             ),
@@ -48,8 +47,6 @@ impl FontMap {
             transform: Transform2D::translation(location.x, location.y),
             ..Default::default()
         }).id();
-
-        gdnative::godot_print!("text position: {:?}", location);
 
         Some(entity)
     }
