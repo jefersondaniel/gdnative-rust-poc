@@ -87,91 +87,60 @@ pub struct CanvasItemBundle {
     pub z_index: ZIndex,
 }
 
-fn setup_canvas_item(
-    visual_server: &VisualServer,
-    parent_canvas_item: &Option<CanvasItem>,
-    entity: &Entity,
-    root_node: &Res<RootNode>,
-    canvas_item_state: &mut ResMut<CanvasItemState>,
-    canvas_item: &mut Mut<CanvasItem>,
-    back_buffer_copy: &BackBufferCopy,
-    material: &Option<Arc<RwLock<Material>>>
-) {
-    if canvas_item.rid.is_valid() {
-        visual_server.canvas_item_clear(canvas_item.rid);
-    } else {
-        canvas_item.rid = visual_server.canvas_item_create();
-        canvas_item_state.canvas_item_rids.insert(entity.id(), canvas_item.rid);
-    }
-
-    canvas_item.version += 1; // Other system watches for this to know they need to update the commands
-
-    if let Some(material) = material {
-        visual_server.canvas_item_set_material(canvas_item.rid, material.read().unwrap().rid);
-    }
-
-    visual_server.canvas_item_set_copy_to_backbuffer(canvas_item.rid, back_buffer_copy.enabled, back_buffer_copy.rect);
-
-    if let Some(parent_canvas_item) = parent_canvas_item {
-        visual_server.canvas_item_set_parent(canvas_item.rid, parent_canvas_item.rid);
-    } else {
-        visual_server.canvas_item_set_parent(canvas_item.rid, root_node.canvas_item_rid);
-    }
-}
+type UpdateCanvasFilter = (Added<CanvasItem>, Changed<Sprite>, Changed<Arc<Texture>>, Changed<Mesh2d>, Changed<Text>, Changed<ClipRect>);
 
 fn update_canvas_item(
-    root_node: Res<RootNode>,
     mut canvas_item_state:  ResMut<CanvasItemState>,
-    parents_query: Query<(Entity, Option<&Children>), With<CanvasItem>>,
     mut query: Query<
-        (&mut CanvasItem, &BackBufferCopy, &Option<Arc<RwLock<Material>>>),
-        Or<(Added<CanvasItem>, Changed<Sprite>, Changed<Arc<Texture>>, Changed<Mesh2d>, Changed<Text>, Changed<ClipRect>)>
+        (Entity, &mut CanvasItem, &BackBufferCopy, &Option<Arc<RwLock<Material>>>),
+        Or<UpdateCanvasFilter>
     >
 ) {
     let visual_server = unsafe { VisualServer::godot_singleton() };
 
-    for (parent, children) in parents_query.iter() {
-        let mut parent_canvas_item: Option<CanvasItem> = None;
-
-        if let Ok((
-            mut canvas_item,
-            back_buffer_copy,
-            material,
-        )) = query.get_mut(parent) {
-            setup_canvas_item(
-                visual_server,
-                &None,
-                &parent,
-                &root_node,
-                &mut canvas_item_state,
-                &mut canvas_item,
-                back_buffer_copy,
-                material,
-            );
-
-            parent_canvas_item = Some(canvas_item.clone());
+    for (
+        entity,
+        mut canvas_item,
+        back_buffer_copy,
+        material,
+    ) in query.iter_mut() {
+        if canvas_item.rid.is_valid() {
+            gdnative::godot_print!("canvas item clear");
+            visual_server.canvas_item_clear(canvas_item.rid);
+        } else {
+            canvas_item.rid = visual_server.canvas_item_create();
+            canvas_item_state.canvas_item_rids.insert(entity.id(), canvas_item.rid);
         }
 
-        if let Some(children) = children {
-            for child in children.iter() {
-                if let Ok((
-                    mut canvas_item,
-                    back_buffer_copy,
-                    material,
-                )) = query.get_mut(*child) {
-                    setup_canvas_item(
-                        visual_server,
-                        &parent_canvas_item,
-                        &parent,
-                        &root_node,
-                        &mut canvas_item_state,
-                        &mut canvas_item,
-                        back_buffer_copy,
-                        material,
-                    );
-                }
+        canvas_item.version += 1; // Other system watches for this to know they need to update the commands
+
+        if let Some(material) = material {
+            visual_server.canvas_item_set_material(canvas_item.rid, material.read().unwrap().rid);
+        }
+
+        visual_server.canvas_item_set_copy_to_backbuffer(canvas_item.rid, back_buffer_copy.enabled, back_buffer_copy.rect);
+    }
+}
+
+fn parent_canvas_item(
+    root_node:  Res<RootNode>,
+    canvas_item_state:  Res<CanvasItemState>,
+    query: Query<(&CanvasItem, Option<&Parent>), Or<UpdateCanvasFilter>>
+) {
+    let visual_server = unsafe { VisualServer::godot_singleton() };
+
+    for (canvas_item, parent) in query.iter() {
+        let mut parent_rid = root_node.canvas_item_rid;
+
+        if let Some(parent) = parent {
+            let parent_entity = parent.0;
+
+            if let Some(rid) = canvas_item_state.canvas_item_rids.get(&parent_entity.id()) {
+                parent_rid = *rid;
             }
         }
+
+        visual_server.canvas_item_set_parent(canvas_item.rid, parent_rid);
     }
 }
 
@@ -319,7 +288,8 @@ impl Plugin for CanvasItemPlugin {
             .insert_resource(CanvasItemState { canvas_item_rids: HashMap::new() })
             .add_system_to_stage(VisualServerStage::Remove, remove_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Remove, transform_propagate_system.system())
-            .add_system_to_stage(VisualServerStage::CanvasItemUpdate, update_canvas_item.system())
+            .add_system_to_stage(VisualServerStage::CanvasItemUpdate, update_canvas_item.system().label("create"))
+            .add_system_to_stage(VisualServerStage::CanvasItemUpdate, parent_canvas_item.system().after("create"))
             .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, clip_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, zindex_canvas_item.system())

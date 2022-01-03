@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use bevy_ecs::prelude::*;
+use gdnative::core_types::Size2;
 
 use crate::animations::animation_loader::AnimationLoader;
 use crate::animations::animation_manager::AnimationManager;
@@ -9,6 +11,7 @@ use crate::drawing::font_map::FontMap;
 use crate::drawing::mugen_font::MugenFont;
 use crate::menus::menu_data::MenuData;
 use crate::menus::title_screen::TitleScreen;
+use crate::systems::visual_server::shader::Shader;
 use crate::{core::{constants::{MUGEN_10_SYSTEM_PATH, MUGEN_11_SYSTEM_PATH}, error::DataError}, drawing::sprite_system::SpriteSystem, io::{file_system::FileSystem, text_file::TextFile}};
 
 pub fn load_menus(
@@ -16,12 +19,17 @@ pub fn load_menus(
     file_system: Res<FileSystem>,
     sprite_system: Res<SpriteSystem>
 ) -> Result<(), DataError> {
-    let animation_loader = AnimationLoader::new();
-    let configuration = Configuration::default();
+    let sprite_shader_code = file_system.open_file_as_string("res://resources/sprite.glsl")?;
+    let sprite_shader = Shader::allocate(&sprite_shader_code);
+    let configuration = Configuration {
+        screen_size: Size2::new(1280.0, 720.0),
+        sprite_shader
+    };
 
     let textfile = load_text_file(&file_system)?;
     let menu_data = load_menu_data(&file_system, &sprite_system, &textfile)?;
     let mut sprite_file = sprite_system.get_sprite_file(&menu_data.sprite_path)?;
+    let animation_loader = AnimationLoader::new();
     let animations = animation_loader.load_animations(&menu_data.anim_path)?;
     let animation_manager = AnimationManager::new(&menu_data.anim_path, animations);
 

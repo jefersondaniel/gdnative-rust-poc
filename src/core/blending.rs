@@ -1,8 +1,8 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::{RwLock, Arc}};
 
-use gdnative::godot_warn;
+use gdnative::{godot_warn, core_types::ToVariant, api::animation_node_blend_space_2d::BlendMode};
 
-use crate::core::{error::DataError, regex::RegExFlags};
+use crate::{core::{error::DataError, regex::RegExFlags}, systems::visual_server::material::Material};
 
 use super::{attribute_value::{AttributeValue, ParseAttributeValue}, enumerations::BlendType, regex::RegEx};
 
@@ -24,6 +24,17 @@ impl Blending {
             source: if blend_type != BlendType::None { source } else { 0 },
             destination: if blend_type != BlendType::None { destination } else { 0 }
         }
+    }
+
+    pub fn is_none(&self) -> bool {
+        return self.blend_type == BlendType::None;
+    }
+
+    pub fn configure_material(&self, material: &Arc<RwLock<Material>>) {
+        let mut material_write = material.write().expect("Could not lock material");
+        material_write.set_shader_param("blend_type", (self.blend_type as i32).to_variant());
+        material_write.set_shader_param("blend_source", (self.source as f32 / 255.0).to_variant());
+        material_write.set_shader_param("blend_destination", (self.destination as f32 / 255.0).to_variant());
     }
 }
 

@@ -1,5 +1,6 @@
 use crate::{animations::animation_manager::AnimationManager, backgrounds::{background::Background, background_group::BackgroundGroup}, core::{configuration::Configuration, error::DataError, regex::RegEx, regex::RegExFlags}, drawing::sprite_file::SpriteFile, io::{text_file::TextFile, text_section::TextSection}};
 
+#[derive(Clone)]
 pub struct NonCombatScreen {
     pub fadeintime: i32,
     pub fadeouttime: i32,

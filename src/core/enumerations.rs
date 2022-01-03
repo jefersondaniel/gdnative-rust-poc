@@ -1,6 +1,8 @@
-use std::fmt::Display;
+use std::{fmt::Display, slice::Iter};
 
 use enum_flags::EnumFlags;
+
+use crate::systems::visual_server::text::common::HorizontalAlign;
 #[derive(Copy, Clone, PartialEq)]
 pub enum Axis { None, X, Y }
 
@@ -113,6 +115,16 @@ impl From<i16> for PrintJustification {
     }
 }
 
+impl From<PrintJustification> for HorizontalAlign {
+    fn from(justification: PrintJustification) -> HorizontalAlign {
+        match justification {
+            PrintJustification::Center => HorizontalAlign::Center,
+            PrintJustification::Left => HorizontalAlign::Left,
+            PrintJustification::Right => HorizontalAlign::Right,
+        }
+    }
+}
+
 #[repr(u16)]
 #[derive(EnumFlags, Copy, Clone, PartialEq)]
 pub enum PlayerButton { None = 0, Up = 1, Down = 2, Left = 4, Right = 8, A = 16, B = 32, C = 64, X = 128, Y = 256, Z = 512, Taunt = 1024, Pause = 2048 }
@@ -177,6 +189,26 @@ pub enum PauseState { Unpaused, Paused, PauseStep }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MainMenuOption { Arcade = 0, Versus = 1, TeamArcade = 2, TeamVersus = 3, TeamCoop = 4, Survival = 5, SurvivalCoop = 6, Training = 7, Watch = 8, Options = 9, Quit = 10 }
+
+impl MainMenuOption {
+    pub fn iter() -> Iter<'static, MainMenuOption> {
+        static VALUES: [MainMenuOption; 11] = [
+            MainMenuOption::Arcade,
+            MainMenuOption::Versus,
+            MainMenuOption::TeamArcade,
+            MainMenuOption::TeamVersus,
+            MainMenuOption::TeamCoop,
+            MainMenuOption::Survival,
+            MainMenuOption::SurvivalCoop,
+            MainMenuOption::Training,
+            MainMenuOption::Watch,
+            MainMenuOption::Options,
+            MainMenuOption::Quit
+        ];
+
+        VALUES.iter()
+    }
+}
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum EntityUpdateOrder { Character, Projectile, Explod }

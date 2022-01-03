@@ -6,6 +6,14 @@ use crate::{animations::animation_manager::AnimationManager, core::{configuratio
 
 use super::non_combat_screen::NonCombatScreen;
 
+#[derive(Default)]
+pub struct TitleScreenState {
+    pub currentmenuitem: i32,
+    pub verticalmenudrawoffset: i32,
+    pub quitselected: i32,
+}
+
+#[derive(Clone)]
 pub struct TitleScreen {
     pub non_combat_screen: NonCombatScreen,
     pub menuposition: Vector2,

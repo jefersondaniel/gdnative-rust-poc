@@ -1,9 +1,9 @@
-use bevy_ecs::{prelude::*, system::EntityCommands};
+use bevy_ecs::{prelude::*};
 use bevy_transform::hierarchy::ChildBuilder;
 use std::{sync::Arc};
-use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Vector3, Transform2D, Rect2, Size2}};
+use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Vector3, Transform2D}};
 
-use crate::{core::{configuration::Configuration, error::DataError, sprite_id::SpriteId}, drawing::{sprite_file::SpriteFile}, io::text_section::TextSection, systems::visual_server::{sprite::Sprite, texture::Texture, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::ClipRect}};
+use crate::{core::{configuration::Configuration, error::DataError, sprite_id::SpriteId, enumerations::BackgroundLayer, constants::{BG_LAYER_BACK_Z_INDEX_MAX, BG_LAYER_FRONT_Z_INDEX_MAX}}, drawing::{sprite_file::SpriteFile}, io::text_section::TextSection, systems::{visual_server::{sprite::Sprite, texture::Texture, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::{ClipRect, ZIndex, BackBufferCopy}, material::Material}}};
 
 use super::base_background::BaseBackground;
 
@@ -38,7 +38,7 @@ impl StaticBackground {
         })
     }
 
-    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>) -> Entity {
+    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>, z_index: i32) -> Entity {
         let st = SurfaceTool::new();
         let size = self.sprite.size;
         let (tilestart, tileend) = self.base_background.get_tile_length(self.sprite.size, &configuration);
@@ -70,15 +70,61 @@ impl StaticBackground {
             }
         }
 
+        let blending = self.base_background.blending;
+        let material = Material::allocate(configuration.sprite_shader.clone());
+        blending.configure_material(&material);
+
+        let actual_z_index = if blending.is_none() { z_index } else { z_index + 64 };
+        let max_z_index = match self.base_background.layer {
+            BackgroundLayer::Back => BG_LAYER_BACK_Z_INDEX_MAX,
+            BackgroundLayer::Front => BG_LAYER_FRONT_Z_INDEX_MAX,
+        };
+        let z_index = i32::min(actual_z_index, max_z_index);
+
+        gdnative::godot_print!("z_index: {:?}", z_index);
+
         commands.spawn_bundle(Mesh2dBundle {
             texture: self.texture.clone(),
             mesh: Mesh2d {
                 primitive_type: PrimitiveType::TRIANGLES,
                 surface_array: st.commit_to_arrays(),
             },
+            clip_rect: self.base_background.get_window_clip_rect(),
+            back_buffer_copy: BackBufferCopy {
+                enabled: true,
+                ..Default::default()
+            },
+            material: Some(material),
+            z_index: z_index.into(),
             ..Default::default()
         })
         .insert(self.clone())
         .id()
+    }
+
+    pub fn update(&self, mut transform: Mut<Transform2D>) {
+        let velocity = self.base_background.velocity;
+
+        if velocity == Vector2::new(0.0, 0.0) {
+            return;
+        }
+
+        *transform = transform.then_translate(velocity);
+
+        let size = self.sprite.size;
+        let location = transform.transform_point(Point2::default());
+        let startlocation = self.base_background.startlocation;
+
+        if location.x >= startlocation.x + size.width || location.x <= startlocation.x - size.width {
+            *transform = transform
+                .then_translate(Vector2::new(-location.x, 0.0))
+                .then_translate(Vector2::new(startlocation.x, 0.0));
+        }
+
+        if location.y >= startlocation.y + size.height || location.y <= startlocation.y - size.height {
+            *transform = transform
+                .then_translate(Vector2::new(0.0, -location.y))
+                .then_translate(Vector2::new(0.0, startlocation.y));
+        }
     }
 }

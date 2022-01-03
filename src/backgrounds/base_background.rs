@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::Res;
 use gdnative::core_types::{Point2, Rect2, Vector2, Size2};
 
-use crate::{core::{blending::Blending, configuration::Configuration, enumerations::BackgroundLayer, error::DataError, regex::{RegEx, RegExFlags}}, io::text_section::TextSection};
+use crate::{core::{blending::Blending, configuration::Configuration, enumerations::BackgroundLayer, error::DataError, regex::{RegEx, RegExFlags}}, io::text_section::TextSection, systems::visual_server::canvas_item::ClipRect};
 
 #[derive(Clone)]
 pub struct BaseBackground {
@@ -82,6 +82,13 @@ impl BaseBackground {
         }
 
         (start, end)
+    }
+
+    pub fn get_window_clip_rect(&self) -> ClipRect {
+        let mut rect = ClipRect::global(self.drawrect);
+        rect.rect.size.width += 1.0;
+        rect.rect.size.height += 1.0;
+        return rect;
     }
 }
 

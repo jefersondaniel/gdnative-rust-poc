@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::*;
 use bevy_transform::hierarchy::ChildBuilder;
 
-use crate::{animations::animation_manager::AnimationManager, core::{configuration::Configuration, error::DataError}, drawing::{sprite_file::SpriteFile}, io::text_section::TextSection};
+use crate::{animations::animation_manager::AnimationManager, core::{configuration::Configuration, error::DataError, enumerations::BackgroundLayer}, drawing::{sprite_file::SpriteFile}, io::text_section::TextSection};
 
 use super::{background_type::BackgroundType, static_background::StaticBackground};
 
@@ -57,13 +57,24 @@ fn build_animated_background(
 }
 
 impl Background {
-    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>) -> Entity {
+    pub fn render(&self, commands: &mut ChildBuilder, configuration: &Res<Configuration>, z_index: i32) -> Entity {
         match self {
             Background::Static(static_background) => {
-                static_background.render(commands, &configuration)
+                static_background.render(commands, &configuration, z_index)
             },
             _ => {
                 commands.spawn().insert(Empty).id()
+            }
+        }
+    }
+
+    pub fn layer(&self) -> BackgroundLayer {
+        match self {
+            Background::Static(static_background) => {
+                static_background.base_background.layer
+            },
+            _ => {
+                BackgroundLayer::Back
             }
         }
     }

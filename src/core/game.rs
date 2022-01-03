@@ -5,7 +5,7 @@ use bevy_core::CorePlugin;
 use bevy_transform::TransformPlugin;
 use gdnative::{prelude::{NativeClass,Node2D,TRef,methods,FromVariant,Variant}};
 
-use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, time::DeltaTime, visual_server_plugin::VisualServerPlugin}, input::Input, audio_server::audio_server_plugin::AudioServerPlugin}};
+use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, time::DeltaTime, visual_server_plugin::VisualServerPlugin}, input::Input, audio_server::audio_server_plugin::AudioServerPlugin, backgrounds::background_plugin::BackgroundPlugin}};
 
 #[derive(NativeClass)]
 #[inherit(Node2D)]
@@ -32,6 +32,7 @@ impl Game {
                 .add_plugin(VisualServerPlugin::default())
                 .add_plugin(AudioServerPlugin::default())
                 // .add_plugin(DebugPlugin::default())
+                .add_plugin(BackgroundPlugin::default())
                 .add_plugin(MenuPlugin::default())
                 .app
             )
@@ -39,7 +40,7 @@ impl Game {
     }
 
     #[export]
-    pub fn _process(&mut self, _owner: TRef<Node2D>, _delta: Variant) {
+    pub fn _physics_process(&mut self, _owner: TRef<Node2D>, _delta: Variant) {
         {
             let mut delta_time = self.app.world.get_resource_mut::<DeltaTime>().unwrap();
             delta_time.0 = f64::from_variant(&_delta).unwrap();
