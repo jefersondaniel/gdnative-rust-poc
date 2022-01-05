@@ -50,7 +50,7 @@ impl From<i32> for ZIndex {
     }
 }
 
-#[derive(Default)]
+#[derive(Copy, Clone, Default)]
 pub struct ClipRect {
     pub rect: Rect2,
     pub global: bool

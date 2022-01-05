@@ -1,6 +1,8 @@
+use gdnative::core_types::Color as GodotColor;
+
 use crate::core::error::DataError;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Color {
     r: u8,
     g: u8,
@@ -20,5 +22,11 @@ impl Color {
         let b = values[2].parse::<u8>().map_err(|_| error.clone())?;
 
         Ok(Color { r, g, b })
+    }
+}
+
+impl From<Color> for GodotColor {
+    fn from(color: Color) -> Self {
+        GodotColor::rgba(color.r as f32 / 255.0, color.g as f32 / 255.0, color.b as f32 / 255.0, 1.0)
     }
 }

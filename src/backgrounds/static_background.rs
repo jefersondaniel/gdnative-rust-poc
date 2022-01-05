@@ -81,8 +81,6 @@ impl StaticBackground {
         };
         let z_index = i32::min(actual_z_index, max_z_index);
 
-        gdnative::godot_print!("z_index: {:?}", z_index);
-
         commands.spawn_bundle(Mesh2dBundle {
             texture: self.texture.clone(),
             mesh: Mesh2d {

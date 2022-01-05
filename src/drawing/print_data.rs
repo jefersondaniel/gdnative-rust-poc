@@ -2,7 +2,7 @@ use crate::core::{attribute_value::{AttributeValue, ParseAttributeValue}, enumer
 
 use super::color::Color;
 
-#[derive(Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PrintData {
     pub index: i16,
     pub colorindex: i16,

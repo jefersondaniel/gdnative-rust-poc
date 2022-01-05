@@ -28,7 +28,7 @@ impl Default for TextStyle {
         Self {
             font: Font::default(),
             font_size: 14,
-            color: Color::rgba(1.0, 1.0, 1.0, 1.0)
+            color: Color::rgba(1.0, 1.0, 1.0, 1.0),
         }
     }
 }
