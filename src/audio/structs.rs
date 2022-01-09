@@ -1,11 +1,10 @@
 use gdnative::{Ref, api::AudioStreamSample};
 
-use crate::drawing::sff::data::DataReader;
+use crate::{drawing::sff::data::DataReader, core::sound_id::SoundId};
 
 #[derive(Clone)]
 pub struct WavSound {
-    pub groupno: u32,
-    pub soundno: u32,
+    pub soundid: SoundId,
     pub stream: Ref<AudioStreamSample>
 }
 

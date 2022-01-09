@@ -105,7 +105,6 @@ fn update_canvas_item(
         material,
     ) in query.iter_mut() {
         if canvas_item.rid.is_valid() {
-            gdnative::godot_print!("canvas item clear");
             visual_server.canvas_item_clear(canvas_item.rid);
         } else {
             canvas_item.rid = visual_server.canvas_item_create();

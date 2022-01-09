@@ -1,4 +1,5 @@
 use crate::core::error::DataError;
+use crate::core::sound_id::SoundId;
 use crate::drawing::sff::data::{FileReader, DataReader, BufferReader};
 
 use super::structs::{FileHeader, SubHeader, WavHeader, WavSound};
@@ -60,8 +61,7 @@ pub fn read_sounds(path: &str) -> Result<Vec<WavSound>, DataError> {
         };
 
         result.push(WavSound {
-            groupno: subheader.groupno,
-            soundno: subheader.soundno,
+            soundid: SoundId::new(subheader.groupno as i16, subheader.soundno as i16),
             stream: stream.into_shared()
         });
 

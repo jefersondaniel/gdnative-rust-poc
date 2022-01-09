@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use std::sync::Arc;
-
 use bevy_ecs::prelude::*;
 use gdnative::core_types::Size2;
 
 use crate::animations::animation_loader::AnimationLoader;
 use crate::animations::animation_manager::AnimationManager;
+use crate::audio::sound_manager::SoundManager;
 use crate::core::configuration::Configuration;
 use crate::drawing::font_map::FontMap;
 use crate::drawing::mugen_font::MugenFont;
@@ -13,6 +12,8 @@ use crate::menus::menu_data::MenuData;
 use crate::menus::title_screen::TitleScreen;
 use crate::systems::visual_server::shader::Shader;
 use crate::{core::{constants::{MUGEN_10_SYSTEM_PATH, MUGEN_11_SYSTEM_PATH}, error::DataError}, drawing::sprite_system::SpriteSystem, io::{file_system::FileSystem, text_file::TextFile}};
+
+use super::components::MenuSoundManager;
 
 pub fn load_menus(
     mut commands: Commands,
@@ -41,6 +42,9 @@ pub fn load_menus(
         &animation_manager
     )?;
 
+    let sound_manager = SoundManager::load(&menu_data.sound_path)?;
+
+    commands.insert_resource(MenuSoundManager(sound_manager));
     commands.insert_resource(menu_data);
     commands.insert_resource(title_screen);
     commands.insert_resource(configuration);

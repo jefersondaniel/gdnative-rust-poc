@@ -9,8 +9,9 @@ use super::non_combat_screen::NonCombatScreen;
 #[derive(Default)]
 pub struct TitleScreenState {
     pub currentmenuitem: i32,
-    pub verticalmenudrawoffset: i32,
+    pub verticalmenudrawoffset: f32,
     pub quitselected: i32,
+    pub menuitemcount: i32,
 }
 
 #[derive(Clone)]
