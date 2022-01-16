@@ -187,6 +187,7 @@ pub enum ProjectileDataType { None, Hit, Guarded, Cancel }
 #[derive(Copy, Clone, PartialEq)]
 pub enum PauseState { Unpaused, Paused, PauseStep }
 
+#[repr(usize)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MainMenuOption { Arcade = 0, Versus = 1, TeamArcade = 2, TeamVersus = 3, TeamCoop = 4, Survival = 5, SurvivalCoop = 6, Training = 7, Watch = 8, Options = 9, Quit = 10 }
 
@@ -225,7 +226,7 @@ pub enum CursorDirection { Up, Down, Left, Right }
 #[derive(Copy, Clone, PartialEq)]
 pub enum ElementType { None, Static, Animation, Text }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum CombatMode { None, Arcade, Versus, TeamArcade, TeamVersus, TeamCoop, Survival, SurvivalCoop, Training }
 
 #[repr(u16)]

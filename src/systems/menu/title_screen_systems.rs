@@ -1,18 +1,21 @@
 use bevy_app::{AppBuilder, Plugin, EventWriter};
 use bevy_ecs::prelude::*;
-use bevy_transform::{hierarchy::BuildChildren};
-use gdnative::core_types::{Rect2, Point2, Size2, Transform2D};
+use bevy_transform::{hierarchy::{BuildChildren, DespawnRecursiveExt}};
+use gdnative::{core_types::{Rect2, Point2, Size2, Transform2D}, godot_warn};
 
-use crate::{menus::{title_screen::{TitleScreen, TitleScreenState}, menu_data::MenuData, menu_state::MenuState}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::{CanvasItemBundle, ClipRect}, text::common::Text}, input::Input, audio_server::audio::Audio}, core::{enumerations::MainMenuOption, configuration::Configuration}, drawing::print_data::PrintData};
+use crate::{menus::{title_screen::{TitleScreen, TitleScreenState}, menu_data::MenuData, menu_state::MenuState}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::{CanvasItemBundle, ClipRect}, text::common::Text}, input::Input, audio_server::audio::Audio}, core::{enumerations::{MainMenuOption, CombatMode}, configuration::Configuration}, drawing::print_data::PrintData};
 
-use super::{setup_layers::HudLayer, components::{Screen, MenuSoundManager}};
+use super::{setup_layers::HudLayer, components::MenuSoundManager};
 
 struct MenuOptionText {
-    index: i32,
+    index: usize,
     print_data: PrintData
 }
 
 struct MenuContainer;
+
+#[derive(Default)]
+struct TitleScreenMarker;
 
 fn show_title_screen(
     mut commands: Commands,
@@ -29,7 +32,7 @@ fn show_title_screen(
     let height = title_screen.spacing.y * (title_screen.visiblemenuitems as f32 - 1.0) + title_screen.marginytop as f32 + title_screen.marginybottom as f32;
     let clip_rect = ClipRect::global(Rect2::new(Point2::new(0.0, 1.0 + title_screen.menuposition.y - title_screen.spacing.y), Size2::new(configuration.screen_size.width, height)));
     let screen_entity = commands.spawn_bundle(CanvasItemBundle::default())
-        .insert(Screen::default())
+        .insert(TitleScreenMarker::default())
         .id();
     let menu_container_entity = commands.spawn_bundle(CanvasItemBundle {
         clip_rect,
@@ -84,6 +87,8 @@ fn update_active_menu_item(
     menu_data: Res<MenuData>,
     input: Res<Input>,
     menu_sound_manager: Res<MenuSoundManager>,
+    mut menu_state: ResMut<State<MenuState>>,
+    mut combat_mode: ResMut<State<CombatMode>>,
     mut audio: ResMut<Audio>,
     mut menu_container_query: Query<&mut Transform2D, With<MenuContainer>>,
     mut state_query: Query<&mut TitleScreenState>,
@@ -93,7 +98,7 @@ fn update_active_menu_item(
     let activefont = title_screen.activefont;
     let mut state = state_query.single_mut().unwrap();
 
-    if input.just_pressed("P1_D") {
+    if input.just_pressed("P1_D") || input.just_pressed("P2_D") {
         if state.currentmenuitem == state.menuitemcount - 1 {
             state.currentmenuitem = 0;
             state.verticalmenudrawoffset = 0.0;
@@ -113,10 +118,10 @@ fn update_active_menu_item(
         }
     }
 
-    if input.just_pressed("P1_U") {
+    if input.just_pressed("P1_U") || input.just_pressed("P2_U") {
         if state.currentmenuitem == 0 {
             state.currentmenuitem = state.menuitemcount - 1;
-            state.verticalmenudrawoffset = title_screen.spacing.y * (state.menuitemcount - title_screen.visiblemenuitems) as f32;
+            state.verticalmenudrawoffset = title_screen.spacing.y * (state.menuitemcount as i32 - title_screen.visiblemenuitems) as f32;
         } else {
             state.currentmenuitem -= 1;
             let menuoffset = state.verticalmenudrawoffset / title_screen.spacing.y;
@@ -126,6 +131,28 @@ fn update_active_menu_item(
         }
 
         if let Some(soundid) = title_screen.soundcursormove {
+            if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
+                audio.play(sound.stream.clone());
+            }
+        }
+    }
+
+    if input.just_pressed("P1_s") || input.just_pressed("P2_s") {
+        match state.currentmenuitem {
+            x if x == MainMenuOption::Versus as usize => {
+                menu_state.set(MenuState::Select).ok();
+                combat_mode.set(CombatMode::Versus).ok();
+            },
+            x if x == MainMenuOption::Training as usize => {
+                menu_state.set(MenuState::Select).ok();
+                combat_mode.set(CombatMode::Training).ok();
+            },
+            _ => {
+                godot_warn!("Menu not implemented");
+            }
+        }
+
+        if let Some(soundid) = title_screen.soundselect {
             if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
                 audio.play(sound.stream.clone());
             }
@@ -146,6 +173,15 @@ fn update_active_menu_item(
     }
 }
 
+fn hide_title_screen(
+    mut commands: Commands,
+    query: Query<Entity, With<TitleScreenMarker>>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
 #[derive(Default)]
 pub struct TitleScreenPlugin;
 
@@ -153,12 +189,16 @@ impl Plugin for TitleScreenPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             .add_system_set(
-                SystemSet::on_enter(MenuState::TitleScreen)
+                SystemSet::on_enter(MenuState::Title)
                     .with_system(show_title_screen.system())
             )
             .add_system_set(
-                SystemSet::on_update(MenuState::TitleScreen)
+                SystemSet::on_update(MenuState::Title)
                     .with_system(update_active_menu_item.system())
+            )
+            .add_system_set(
+                SystemSet::on_exit(MenuState::Title)
+                    .with_system(hide_title_screen.system())
             );
     }
 }

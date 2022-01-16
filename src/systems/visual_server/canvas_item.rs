@@ -1,7 +1,7 @@
 use bevy_ecs::{prelude::*};
 use bevy_app::{AppBuilder, Plugin};
 use bevy_transform::components::{Children, Parent};
-use gdnative::{api::VisualServer, core_types::{Rect2, Rid, Transform2D, Point2, Size2}};
+use gdnative::{api::VisualServer, core_types::{Rect2, Rid, Transform2D, Point2, Size2, Color}};
 use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 use crate::systems::visual_server::enumerations::{VisualServerStage};
@@ -56,6 +56,15 @@ pub struct ClipRect {
     pub global: bool
 }
 
+#[derive(Copy, Clone)]
+pub struct Modulate(pub Color);
+
+impl Default for Modulate {
+    fn default() -> Self {
+        return Modulate(Color::rgba(1.0, 1.0, 1.0, 1.0));
+    }
+}
+
 impl ClipRect {
     pub fn global(rect: Rect2) -> Self {
         ClipRect {
@@ -85,6 +94,7 @@ pub struct CanvasItemBundle {
     pub clip_rect: ClipRect,
     pub material: Option<Arc<RwLock<Material>>>,
     pub z_index: ZIndex,
+    pub modulate: Modulate,
 }
 
 type UpdateCanvasFilter = (Added<CanvasItem>, Changed<Sprite>, Changed<Arc<Texture>>, Changed<Mesh2d>, Changed<Text>, Changed<ClipRect>);
@@ -192,6 +202,16 @@ fn hide_canvas_item(query: Query<(Entity, &CanvasItem, &Visible), Or<(Changed<Vi
     }
 }
 
+fn modulate_canvas_item(
+    query: Query<(Entity, &CanvasItem, &Modulate), Changed<Modulate>>
+) {
+    let visual_server = unsafe { VisualServer::godot_singleton() };
+
+    for (_, canvas_item, modulate) in query.iter() {
+        visual_server.canvas_item_set_modulate(canvas_item.rid, modulate.0);
+    }
+}
+
 fn remove_canvas_item(
     mut canvas_item_state: ResMut<CanvasItemState>,
     removals: RemovedComponents<CanvasItem>,
@@ -292,6 +312,7 @@ impl Plugin for CanvasItemPlugin {
             .add_system_to_stage(VisualServerStage::Transform, transform_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, clip_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, zindex_canvas_item.system())
+            .add_system_to_stage(VisualServerStage::Transform, modulate_canvas_item.system())
             .add_system_to_stage(VisualServerStage::Transform, hide_canvas_item.system());
     }
 }

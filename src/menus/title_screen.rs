@@ -8,10 +8,10 @@ use super::non_combat_screen::NonCombatScreen;
 
 #[derive(Default)]
 pub struct TitleScreenState {
-    pub currentmenuitem: i32,
+    pub currentmenuitem: usize,
     pub verticalmenudrawoffset: f32,
     pub quitselected: i32,
-    pub menuitemcount: i32,
+    pub menuitemcount: usize,
 }
 
 #[derive(Clone)]
@@ -69,23 +69,23 @@ impl TitleScreen {
 
 fn build_menu_text(textsection: &TextSection) -> HashMap<MainMenuOption, String> {
     let mut map = HashMap::new();
-    map.insert(MainMenuOption::Arcade, textsection.get_attribute_or_default("menu.itemname.arcade"));
+    // map.insert(MainMenuOption::Arcade, textsection.get_attribute_or_default("menu.itemname.arcade"));
     map.insert(MainMenuOption::Versus, textsection.get_attribute_or_default("menu.itemname.versus"));
-    map.insert(MainMenuOption::TeamArcade, textsection.get_attribute_or_default("menu.itemname.teamarcade"));
-    map.insert(MainMenuOption::TeamVersus, textsection.get_attribute_or_default("menu.itemname.teamversus"));
-    map.insert(MainMenuOption::TeamCoop, textsection.get_attribute_or_default("menu.itemname.teamcoop"));
-    map.insert(MainMenuOption::Survival, textsection.get_attribute_or_default("menu.itemname.survival"));
-    map.insert(MainMenuOption::SurvivalCoop, textsection.get_attribute_or_default("menu.itemname.survivalcoop"));
+    // map.insert(MainMenuOption::TeamArcade, textsection.get_attribute_or_default("menu.itemname.teamarcade"));
+    // map.insert(MainMenuOption::TeamVersus, textsection.get_attribute_or_default("menu.itemname.teamversus"));
+    // map.insert(MainMenuOption::TeamCoop, textsection.get_attribute_or_default("menu.itemname.teamcoop"));
+    // map.insert(MainMenuOption::Survival, textsection.get_attribute_or_default("menu.itemname.survival"));
+    // map.insert(MainMenuOption::SurvivalCoop, textsection.get_attribute_or_default("menu.itemname.survivalcoop"));
     map.insert(MainMenuOption::Training, textsection.get_attribute_or_default("menu.itemname.training"));
-    map.insert(MainMenuOption::Watch, textsection.get_attribute_or_default("menu.itemname.watch"));
-    map.insert(MainMenuOption::Options, textsection.get_attribute_or_default("menu.itemname.options"));
-    map.insert(MainMenuOption::Quit, textsection.get_attribute_or_default("menu.itemname.exit"));
+    // map.insert(MainMenuOption::Watch, textsection.get_attribute_or_default("menu.itemname.watch"));
+    // map.insert(MainMenuOption::Options, textsection.get_attribute_or_default("menu.itemname.options"));
+    // map.insert(MainMenuOption::Quit, textsection.get_attribute_or_default("menu.itemname.exit"));
     // TODO: Implement missing menus
-    map.insert(MainMenuOption::TeamCoop, "NOT IMPLEMENTED".to_string());
-    map.insert(MainMenuOption::Survival, "NOT IMPLEMENTED".to_string());
-    map.insert(MainMenuOption::SurvivalCoop, "NOT IMPLEMENTED".to_string());
-    map.insert(MainMenuOption::Training, "NOT IMPLEMENTED".to_string());
-    map.insert(MainMenuOption::Watch, "NOT IMPLEMENTED".to_string());
-    map.insert(MainMenuOption::Options, "NOT IMPLEMENTED".to_string());
+    // map.insert(MainMenuOption::TeamCoop, "NOT IMPLEMENTED".to_string());
+    // map.insert(MainMenuOption::Survival, "NOT IMPLEMENTED".to_string());
+    // map.insert(MainMenuOption::SurvivalCoop, "NOT IMPLEMENTED".to_string());
+    // map.insert(MainMenuOption::Training, "NOT IMPLEMENTED".to_string());
+    // map.insert(MainMenuOption::Watch, "NOT IMPLEMENTED".to_string());
+    // map.insert(MainMenuOption::Options, "NOT IMPLEMENTED".to_string());
     map
 }
