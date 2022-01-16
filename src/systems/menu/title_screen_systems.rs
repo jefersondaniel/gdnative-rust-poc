@@ -112,6 +112,12 @@ fn update_active_menu_item(
             }
         }
 
+        if let Some(soundid) = title_screen.soundcursormove {
+            if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
+                audio.play(sound.stream.clone());
+            }
+        }    
+
         changed = true;
     }
 
@@ -127,13 +133,13 @@ fn update_active_menu_item(
             }
         }
 
-        changed = true;
-    }
+        if let Some(soundid) = title_screen.soundcursormove {
+            if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
+                audio.play(sound.stream.clone());
+            }
+        }    
 
-    if let Some(soundid) = title_screen.soundcursormove {
-        if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
-            audio.play(sound.stream.clone());
-        }
+        changed = true;
     }
 
     if input.just_pressed("P1_s") || input.just_pressed("P2_s") {
