@@ -97,6 +97,7 @@ fn update_active_menu_item(
     let mainfont = title_screen.mainfont;
     let activefont = title_screen.activefont;
     let mut state = state_query.single_mut().unwrap();
+    let mut changed = false;
 
     if input.just_pressed("P1_D") || input.just_pressed("P2_D") {
         if state.currentmenuitem == state.menuitemcount - 1 {
@@ -111,11 +112,7 @@ fn update_active_menu_item(
             }
         }
 
-        if let Some(soundid) = title_screen.soundcursormove {
-            if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
-                audio.play(sound.stream.clone());
-            }
-        }
+        changed = true;
     }
 
     if input.just_pressed("P1_U") || input.just_pressed("P2_U") {
@@ -130,10 +127,12 @@ fn update_active_menu_item(
             }
         }
 
-        if let Some(soundid) = title_screen.soundcursormove {
-            if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
-                audio.play(sound.stream.clone());
-            }
+        changed = true;
+    }
+
+    if let Some(soundid) = title_screen.soundcursormove {
+        if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
+            audio.play(sound.stream.clone());
         }
     }
 
@@ -157,6 +156,10 @@ fn update_active_menu_item(
                 audio.play(sound.stream.clone());
             }
         }
+    }
+
+    if !changed {
+        return;
     }
 
     let mut transform = menu_container_query.single_mut().unwrap();
