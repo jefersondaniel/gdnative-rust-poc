@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use gdnative::{api::{Node2D, AudioStreamPlayer, AudioStream}, Ref, object::AsArg, prelude::Unique, godot_error};
 
-use crate::core::error::DataError;
+use crate::core::{error::DataError, helpers::linear2db};
 
 pub struct Audio {
     node: Arc<Mutex<Ref<Node2D, Unique>>>,
@@ -26,6 +26,7 @@ impl Audio {
                 match player_lock.lock() {
                     Ok(player) => {
                         player.set_stream(stream);
+                        player.set_volume_db(linear2db(0.001));
                         player.play(0.0);
                     },
                     Err(_) => {

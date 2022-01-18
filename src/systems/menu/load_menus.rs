@@ -9,6 +9,7 @@ use crate::core::configuration::Configuration;
 use crate::drawing::font_map::FontMap;
 use crate::drawing::mugen_font::MugenFont;
 use crate::menus::menu_data::MenuData;
+use crate::menus::select_screen::SelectScreen;
 use crate::menus::title_screen::TitleScreen;
 use crate::systems::visual_server::shader::Shader;
 use crate::{core::{constants::{MUGEN_10_SYSTEM_PATH, MUGEN_11_SYSTEM_PATH}, error::DataError}, drawing::sprite_system::SpriteSystem, io::{file_system::FileSystem, text_file::TextFile}};
@@ -36,6 +37,13 @@ pub fn load_menus(
 
     // Screens
     let title_screen = TitleScreen::build(
+        &configuration,
+        &textfile,
+        &mut sprite_file,
+        &animation_manager
+    )?;
+
+    let select_screen = SelectScreen::build(
         &configuration,
         &textfile,
         &mut sprite_file,

@@ -12,6 +12,8 @@ impl SoundId {
     pub fn new(group: i16, sample: i16) -> Self {
         SoundId { group: group, sample: sample }
     }
+
+    pub fn invalid() -> Self { SoundId::new(i16::MIN, i16::MIN) }
 }
 
 impl From<&SoundId> for String {

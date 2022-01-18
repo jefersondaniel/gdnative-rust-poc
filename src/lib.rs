@@ -6,6 +6,7 @@ mod audio;
 mod backgrounds;
 mod core;
 mod drawing;
+mod elements;
 mod io;
 mod menus;
 mod systems;
