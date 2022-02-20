@@ -116,7 +116,7 @@ fn update_active_menu_item(
             if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
                 audio.play(sound.stream.clone());
             }
-        }    
+        }
 
         changed = true;
     }
@@ -124,7 +124,11 @@ fn update_active_menu_item(
     if input.just_pressed("P1_U") || input.just_pressed("P2_U") {
         if state.currentmenuitem == 0 {
             state.currentmenuitem = state.menuitemcount - 1;
-            state.verticalmenudrawoffset = title_screen.spacing.y * (state.menuitemcount as i32 - title_screen.visiblemenuitems) as f32;
+            if state.menuitemcount > title_screen.visiblemenuitems as usize {
+                state.verticalmenudrawoffset = title_screen.spacing.y * (state.menuitemcount as i32 - title_screen.visiblemenuitems) as f32;
+            } else {
+                state.verticalmenudrawoffset = 0.0;
+            }
         } else {
             state.currentmenuitem -= 1;
             let menuoffset = state.verticalmenudrawoffset / title_screen.spacing.y;
@@ -137,7 +141,7 @@ fn update_active_menu_item(
             if let Some(sound) = menu_sound_manager.0.get_sound(soundid) {
                 audio.play(sound.stream.clone());
             }
-        }    
+        }
 
         changed = true;
     }
