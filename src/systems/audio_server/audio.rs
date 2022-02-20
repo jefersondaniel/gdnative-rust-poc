@@ -26,7 +26,7 @@ impl Audio {
                 match player_lock.lock() {
                     Ok(player) => {
                         player.set_stream(stream);
-                        player.set_volume_db(linear2db(0.001));
+                        player.set_volume_db(linear2db(0.5));
                         player.play(0.0);
                     },
                     Err(_) => {
