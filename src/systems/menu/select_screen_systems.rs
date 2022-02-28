@@ -1,8 +1,9 @@
 use bevy_app::{AppBuilder, Plugin, EventWriter};
 use bevy_ecs::prelude::*;
-use bevy_transform::{hierarchy::{BuildChildren, DespawnRecursiveExt}};
+use bevy_transform::{hierarchy::{BuildChildren, DespawnRecursiveExt}, components::Parent};
+use gdnative::core_types::Transform2D;
 
-use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::canvas_item::CanvasItemBundle}, core::configuration::Configuration};
+use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::CanvasItemBundle, sprite::{SpriteBundle, Sprite}}}, core::constants};
 
 use super::setup_layers::HudLayer;
 
@@ -29,6 +30,27 @@ fn show_screen(
         layer: screen_entity.clone(),
         background_group: background_group.clone(),
     });
+
+    let cellbg = &select_screen.cellbg;
+
+    for y in 0..select_screen.rows {
+        for x in 0..select_screen.columns {
+            let mut location = select_screen.grid_position;
+            location.x += (select_screen.cellsize.x + select_screen.cellspacing as f32) * x as f32;
+            location.y += (select_screen.cellsize.y + select_screen.cellspacing as f32) * y as f32;
+
+            commands.spawn_bundle(SpriteBundle {
+                texture: cellbg.texture.clone(),
+                sprite: Sprite {
+                    size: cellbg.texture.size,
+                    ..Default::default()
+                },
+                z_index: (constants::BG_LAYER_FRONT_Z_INDEX_MAX + 1).into(),
+                transform: Transform2D::translation(location.x, location.y),
+                ..Default::default()
+            }).insert(Parent(screen_entity));
+        }
+    }
 
     commands.entity(hud_entity).push_children(&[screen_entity]);
 }

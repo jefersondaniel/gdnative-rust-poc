@@ -5,20 +5,20 @@ use gdnative::{core_types::{Point2, Vector2}, api::visual_server::TextureFlags};
 use crate::{core::{sprite_id::SpriteId, sound_id::SoundId, enumerations::{SpriteEffects, ElementType}, error::DataError}, io::text_section::TextSection, drawing::{print_data::PrintData, sprite_file::SpriteFile}, systems::visual_server::texture::Texture};
 
 pub struct Element {
-    prefix: String,
-    animationnumber: i32,
-    spriteid: SpriteId,
-    fontdata: PrintData,
-    text: String,
-    soundid: SoundId,
-    sndtime: i32,
-    offset: Point2,
-    displaytime: i32,
-    flip: SpriteEffects,
-    layerno: i32,
-    scale: Vector2,
-    element_type: ElementType,
-    texture: Arc<Texture>,
+    pub prefix: String,
+    pub animationnumber: i32,
+    pub spriteid: SpriteId,
+    pub fontdata: PrintData,
+    pub text: String,
+    pub soundid: SoundId,
+    pub sndtime: i32,
+    pub offset: Point2,
+    pub displaytime: i32,
+    pub flip: SpriteEffects,
+    pub layerno: i32,
+    pub scale: Vector2,
+    pub element_type: ElementType,
+    pub texture: Arc<Texture>,
 }
 
 impl Element {
