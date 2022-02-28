@@ -43,11 +43,14 @@ fn show_title_screen(
 
     commands.entity(screen_entity).push_children(&[menu_container_entity]);
 
+    let mut menus = Vec::<MainMenuOption>::new();
+
     for menu_item in MainMenuOption::iter() {
         let text_option = title_screen.menutext.get(menu_item);
         if text_option.is_none() {
             continue;
         }
+        menus.push(menu_item.clone());
         let text = text_option.unwrap();
         let print_data = title_screen.mainfont;
         let mut location = title_screen.menuposition;
@@ -72,6 +75,8 @@ fn show_title_screen(
             title_screen_state.menuitemcount += 1;
         }
     }
+
+    title_screen_state.menus = menus;
 
     background_group_event.send(BackgroundGroupEvent {
         layer: screen_entity.clone(),
@@ -147,12 +152,14 @@ fn update_active_menu_item(
     }
 
     if input.just_pressed("P1_s") || input.just_pressed("P2_s") {
-        match state.currentmenuitem {
-            x if x == MainMenuOption::Versus as usize => {
+        let current_menu = state.menus[state.currentmenuitem];
+
+        match current_menu {
+            MainMenuOption::Versus => {
                 menu_state.set(MenuState::Select).ok();
                 combat_mode.set(CombatMode::Versus).ok();
             },
-            x if x == MainMenuOption::Training as usize => {
+            MainMenuOption::Training => {
                 menu_state.set(MenuState::Select).ok();
                 combat_mode.set(CombatMode::Training).ok();
             },

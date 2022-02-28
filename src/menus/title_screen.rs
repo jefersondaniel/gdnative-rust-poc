@@ -12,6 +12,7 @@ pub struct TitleScreenState {
     pub verticalmenudrawoffset: f32,
     pub quitselected: i32,
     pub menuitemcount: usize,
+    pub menus: Vec<MainMenuOption>,
 }
 
 #[derive(Clone)]
