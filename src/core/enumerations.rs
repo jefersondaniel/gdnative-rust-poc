@@ -217,7 +217,7 @@ pub enum EntityUpdateOrder { Character, Projectile, Explod }
 #[derive(Copy, Clone, PartialEq)]
 pub enum ProjectileState { Normal, Removing, Canceling, Kill }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum PlayerSelectType { Profile, Random }
 
 #[derive(Copy, Clone, PartialEq)]

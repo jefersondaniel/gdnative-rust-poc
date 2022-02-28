@@ -10,6 +10,7 @@ mod elements;
 mod io;
 mod menus;
 mod systems;
+mod profiles;
 
 fn init(handle: InitHandle) {
   handle.add_class::<Game>();

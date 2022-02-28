@@ -1,3 +1,4 @@
+pub const DATA_PATH: &str = "res://data";
 pub const MUGEN_10_SYSTEM_PATH: &str = "res://data/data/system.def";
 pub const MUGEN_11_SYSTEM_PATH: &str = "res://data/data/mugen1/system.def";
 pub const BG_LAYER_BACK_Z_INDEX_MIN: i32 = 0;

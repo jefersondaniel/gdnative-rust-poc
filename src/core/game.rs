@@ -5,7 +5,7 @@ use bevy_core::CorePlugin;
 use bevy_transform::TransformPlugin;
 use gdnative::{prelude::{NativeClass,Node2D,TRef,methods,FromVariant,Variant}};
 
-use crate::{drawing::sprite_system::SpriteSystem, io::file_system::FileSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, time::DeltaTime, visual_server_plugin::VisualServerPlugin}, input::Input, audio_server::audio_server_plugin::AudioServerPlugin, backgrounds::background_plugin::BackgroundPlugin}};
+use crate::{drawing::sprite_system::SpriteSystem, systems::{debug::DebugPlugin, menu::menu_plugin::MenuPlugin, visual_server::{root_node::RootNode, time::DeltaTime, visual_server_plugin::VisualServerPlugin}, input::Input, audio_server::audio_server_plugin::AudioServerPlugin, backgrounds::background_plugin::BackgroundPlugin}, profiles::profile_loader::ProfileLoader};
 
 #[derive(NativeClass)]
 #[inherit(Node2D)]
@@ -25,8 +25,8 @@ impl Game {
                 .insert_resource(root_node)
                 .insert_resource(input)
                 .insert_resource(DeltaTime::default())
-                .insert_resource(FileSystem::new())
                 .insert_resource(SpriteSystem::new())
+                .insert_resource(ProfileLoader::default())
                 .add_plugin(CorePlugin::default())
                 .add_plugin(TransformPlugin::default())
                 .add_plugin(VisualServerPlugin::default())

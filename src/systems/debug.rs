@@ -3,7 +3,7 @@ use bevy_ecs::prelude::*;
 use bevy_transform::hierarchy::BuildChildren;
 use gdnative::{api::{visual_server::{TextureFlags, PrimitiveType}, SurfaceTool}, core_types::{Point2, Vector2, Color, Rect2, Size2, Vector3, Transform2D, ToVariant}, godot_print};
 
-use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}, font_loader::load_dynamic_font}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::{ClipRect, ZIndex}}, audio::{snd_parser::read_sounds, structs::WavSound}, io::file_system::FileSystem};
+use crate::{core::{error::DataError, sprite_id::SpriteId}, drawing::{sprite_system::SpriteSystem}, systems::visual_server::{sprite::{Sprite, SpriteBundle}, text::{text_plugin::{TextBundle}, common::{TextStyle, Text, TextAlignment, HorizontalAlign}, font_loader::load_dynamic_font}, shader::Shader, material::Material, mesh_2d::{Mesh2dBundle, Mesh2d}, canvas_item::{ClipRect, ZIndex}}, audio::{snd_parser::read_sounds, structs::WavSound}, io::file_system};
 
 use super::{log::handle_error, visual_server::{canvas_item::{Visible}}, input::Input, audio_server::audio::Audio};
 
@@ -11,8 +11,7 @@ struct TestComponent;
 
 fn setup(
     mut commands: Commands,
-    sprite_system: Res<SpriteSystem>,
-    file_system: Res<FileSystem>
+    sprite_system: Res<SpriteSystem>
 ) -> Result<(), DataError> {
     godot_print!("Start debug");
 
@@ -22,7 +21,7 @@ fn setup(
     let palette_texture = sff_data.create_palette_texture(None);
     let size = texture.size;
     let offset = Point2::new(sff_data.x as f32, sff_data.y as f32);
-    let sprite_shader_code = file_system.open_file_as_string("res://resources/sprite.glsl")?;
+    let sprite_shader_code = file_system::open_file_as_string("res://resources/sprite.glsl")?;
     let shader = Shader::allocate(&sprite_shader_code);
     let material = Material::allocate(shader);
     let mut material_write = material.write().expect("Could not lock material");

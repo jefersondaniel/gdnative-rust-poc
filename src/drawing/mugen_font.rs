@@ -1,6 +1,6 @@
 use gdnative::{core_types::{Rect2, Size2, Vector2, Point2}, api::visual_server::TextureFlags, godot_warn};
 
-use crate::{core::error::DataError, io::file_system::FileSystem, systems::visual_server::{text::{font::Font, common::{FontSpacing, GlyphSpacing}, bitmap_font::BitmapFont, font_loader::load_dynamic_font}, texture::Texture}};
+use crate::{core::error::DataError, io::file_system, systems::visual_server::{text::{font::Font, common::{FontSpacing, GlyphSpacing}, bitmap_font::BitmapFont, font_loader::load_dynamic_font}, texture::Texture}};
 
 use super::{fnt_parser::read_fnt_file, sprite_system::SpriteSystem};
 
@@ -64,14 +64,13 @@ impl MugenFont {
     }
 
     pub fn load_font_v2(path: &str, sprite_system: &SpriteSystem) -> Result<MugenFont, DataError> {
-        let file_system = FileSystem::new();
-        let text_file = file_system.open_text_file(path)?;
+        let text_file = file_system::open_text_file(path)?;
         let def_section = text_file.get_section("def")?;
         let filename: String = def_section.get_attribute_or_fail("file")?;
         let size: Size2 = def_section.get_attribute_or_default("size");
         let spacing: Vector2 = def_section.get_attribute_or_default("spacing");
         let offset: Point2 = def_section.get_attribute_or_default("offset");
-        let font_path = file_system.get_path_by_refferrer(&filename, path);
+        let font_path = file_system::get_path_by_refferrer(&filename, path);
 
         if font_path.to_lowercase().ends_with(".sff") {
             let base_bitmap_font = BitmapFont::new(
@@ -143,7 +142,7 @@ impl MugenFont {
             Err(_) => {
                 let font= load_dynamic_font("res://resources/roboto.ttf")?;
 
-                godot_warn!("True type font not found: {}, using fallback", file_system.get_name(&font_path));
+                godot_warn!("True type font not found: {}, using fallback", file_system::get_name(&font_path));
 
                 Ok(MugenFont {
                     font_banks: vec![font],

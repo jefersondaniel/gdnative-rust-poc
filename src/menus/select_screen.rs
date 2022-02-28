@@ -36,8 +36,8 @@ impl SelectScreen {
             animation_manager
         )?;
 
-        let cellbg = Element::build(&textsection, "cell.bg")?;
-        let cellrandom = Element::build(&textsection, "cell.ramdom")?;
+        let cellbg = Element::build(&textsection, "cell.bg", sprite_file)?;
+        let cellrandom = Element::build(&textsection, "cell.random", sprite_file)?;
         let columns = textsection.get_attribute_or_default("columns");
         let rows = textsection.get_attribute_or_default("rows");
         let wrapping = textsection.get_attribute_or_default("wrapping");
