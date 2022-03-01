@@ -75,14 +75,12 @@ fn load_menu_data(
     let motif_author = info.get_attribute_or_default::<String>("author");
     let mut font_hash_map = HashMap::<usize, MugenFont>::new();
 
-    for i in 1..10 as usize {
+    for i in 1..32 as usize {
         if let Some(path) = files.get_attribute::<String>(&format!("font{}", i)) {
             let font_path = format!("font/{}", &path);
             let font_path = file_system::get_path_by_refferrer(&font_path, &text_file.filepath);
             let font = sprite_system.load_font(&font_path)?;
             font_hash_map.insert(i, font);
-        } else {
-            break;
         }
     }
 
