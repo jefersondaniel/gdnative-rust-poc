@@ -25,7 +25,7 @@ regex = "1"
 ab_glyph = "0.2.12"
 
 [patch.crates-io]
-bevy_core = { git = "ssh://git@github.com/jefersondaniel/bevy-emscripten.git", branch = "emscripten-0.5.0" }
-bevy_app = { git = "ssh://git@github.com/jefersondaniel/bevy-emscripten.git", branch = "emscripten-0.5.0" }
-bevy_ecs = { git = "ssh://git@github.com/jefersondaniel/bevy-emscripten.git", branch = "emscripten-0.5.0" }
-bevy_transform = { git = "ssh://git@github.com/jefersondaniel/bevy-emscripten.git", branch = "emscripten-0.5.0" }
+bevy_core = { git = "https://github.com/jefersondaniel/bevy", branch = "emscripten-0.5.0" }
+bevy_app = { git = "https://github.com/jefersondaniel/bevy", branch = "emscripten-0.5.0" }
+bevy_ecs = { git = "https://github.com/jefersondaniel/bevy", branch = "emscripten-0.5.0" }
+bevy_transform = { git = "https://github.com/jefersondaniel/bevy", branch = "emscripten-0.5.0" }

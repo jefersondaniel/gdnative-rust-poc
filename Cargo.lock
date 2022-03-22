@@ -93,7 +93,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "bevy_app"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "bevy_derive",
  "bevy_ecs",
@@ -107,7 +107,7 @@ dependencies = [
 [[package]]
 name = "bevy_core"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -121,7 +121,7 @@ dependencies = [
 [[package]]
 name = "bevy_derive"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "Inflector",
  "find-crate",
@@ -133,7 +133,7 @@ dependencies = [
 [[package]]
 name = "bevy_ecs"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "async-channel",
  "bevy_ecs_macros",
@@ -153,7 +153,7 @@ dependencies = [
 [[package]]
 name = "bevy_ecs_macros"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "find-crate",
  "proc-macro2",
@@ -164,7 +164,7 @@ dependencies = [
 [[package]]
 name = "bevy_math"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "bevy_reflect",
  "glam",
@@ -173,7 +173,7 @@ dependencies = [
 [[package]]
 name = "bevy_reflect"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "bevy_reflect_derive",
  "bevy_utils",
@@ -189,7 +189,7 @@ dependencies = [
 [[package]]
 name = "bevy_reflect_derive"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "find-crate",
  "proc-macro2",
@@ -201,7 +201,7 @@ dependencies = [
 [[package]]
 name = "bevy_tasks"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "async-channel",
  "async-executor",
@@ -215,7 +215,7 @@ dependencies = [
 [[package]]
 name = "bevy_transform"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -228,7 +228,7 @@ dependencies = [
 [[package]]
 name = "bevy_utils"
 version = "0.5.0"
-source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
+source = "git+https://github.com/jefersondaniel/bevy?branch=emscripten-0.5.0#0ff4e5839789604ab9c1310343378bf5af3a2a88"
 dependencies = [
  "ahash",
  "getrandom",
