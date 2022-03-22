@@ -93,8 +93,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "bevy_app"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "845be45f00d9c031071f8c68f7681bf791796634efa5f58937275337154cb019"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "bevy_derive",
  "bevy_ecs",
@@ -108,8 +107,7 @@ dependencies = [
 [[package]]
 name = "bevy_core"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa5b6d7f68752cfb5b498fc5ea9ad5cfb5de871cdd4d894f2e046fef2e2898ea"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -123,8 +121,7 @@ dependencies = [
 [[package]]
 name = "bevy_derive"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd6fd06d325cfb4998b26fc84476380611ce6a2d0a8a99b501328c79d7bda104"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "Inflector",
  "find-crate",
@@ -136,8 +133,7 @@ dependencies = [
 [[package]]
 name = "bevy_ecs"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "daf4745460111bd4285ed6c3e6caa4d882db95471edb02b88c6ad4eac89b923c"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "async-channel",
  "bevy_ecs_macros",
@@ -157,8 +153,7 @@ dependencies = [
 [[package]]
 name = "bevy_ecs_macros"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65323f6896068407b768c16ec1aa5c8891d49a28b725d0cbabc663d7f47baaec"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "find-crate",
  "proc-macro2",
@@ -169,8 +164,7 @@ dependencies = [
 [[package]]
 name = "bevy_math"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb36a879cdc96f554b62dd7c7c02392a9a10e94082e4bc686a8242e1d674e7cc"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "bevy_reflect",
  "glam",
@@ -179,8 +173,7 @@ dependencies = [
 [[package]]
 name = "bevy_reflect"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d7f57646077e9b016f079e0f39fe2826dce407bb0dccc29b481a33ef7552847"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "bevy_reflect_derive",
  "bevy_utils",
@@ -196,8 +189,7 @@ dependencies = [
 [[package]]
 name = "bevy_reflect_derive"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cbc3f45d1d49c6e984b492ee13564677d1392828cac50c030e025f74f69386e1"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "find-crate",
  "proc-macro2",
@@ -209,8 +201,7 @@ dependencies = [
 [[package]]
 name = "bevy_tasks"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77243565dde30ce01e538c615db54bc939a36e4c468b271e86a980004bac7bc9"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "async-channel",
  "async-executor",
@@ -224,8 +215,7 @@ dependencies = [
 [[package]]
 name = "bevy_transform"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d166fe11f67dc195b42207e7b096f36680f611afc8f4105b3d81865b66ecf91"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -238,8 +228,7 @@ dependencies = [
 [[package]]
 name = "bevy_utils"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c384a69b670329f968f59abdcf6506f183cf18b8619d6ec1cbfe33e268e5da20"
+source = "git+ssh://git@github.com/jefersondaniel/bevy-emscripten.git?branch=emscripten-0.5.0#5fc8d38fb39bc81d93e2f9b28366c92991d91b94"
 dependencies = [
  "ahash",
  "getrandom",

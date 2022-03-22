@@ -49,7 +49,8 @@ pub fn open_file(filepath: &str) -> Result<Ref<File, Unique>, DataError> {
 
     if let Err(detail) = file.open(filepath, File::READ) {
         return Result::Err(DataError::new(format!(
-            "Error opening file: {}",
+            "Error opening file: {}, {}",
+            filepath,
             detail
         )));
     }
@@ -74,16 +75,16 @@ pub fn open_text_file(filepath: &str) -> Result<TextFile, DataError> {
     let result = open_file(filepath);
 
     match result {
-        Ok(file) => Result::Ok(build_text_file(file)),
+        Ok(file) => Result::Ok(build_text_file(filepath, file)),
         Err(error) => Result::Err(error)
     }
 }
 
-pub fn build_text_file(file: Ref<File, Unique>) -> TextFile {
+pub fn build_text_file(filepath: &str, file: Ref<File, Unique>) -> TextFile {
     let text = file.get_as_text().to_string();
 
     TextFile::from_string(
-        file.get_path().to_string(),
+        filepath.to_string(),
         text
     )
 }
