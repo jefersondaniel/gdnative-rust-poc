@@ -4,13 +4,14 @@ use super::data::{BufferReader, DataReader, FileReader};
 use super::image::{Palette, RawColor, RawImage};
 use super::lz5::decode_lz5;
 use super::rle5::{decode_rle5, decode_rle8};
-use super::sff_common::{SffData, SffPal, SffMetadata};
+use super::sff_common::{SffData, SffPal, SffMetadata, MutableSffData};
 use gdnative::Ref;
 use gdnative::api::file::File;
 use gdnative::prelude::Unique;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::sync::Arc;
 
 #[allow(dead_code)]
 struct FileHeader {
@@ -133,7 +134,7 @@ struct FileHandler {
     head: FileHeader
 }
 
-fn matrix_to_pal(reader: &mut dyn DataReader, size: usize) -> Rc<Palette> {
+fn matrix_to_pal(reader: &mut dyn DataReader, size: usize) -> Arc<Palette> {
     let mut colors: Vec<RawColor> = Vec::new();
     for i in 0..size {
         let r = reader.get_u8();
@@ -142,7 +143,7 @@ fn matrix_to_pal(reader: &mut dyn DataReader, size: usize) -> Rc<Palette> {
         reader.get_u8();
         colors.push(RawColor::new(r, g, b, if i == 0 { 0 } else { 255 }));
     }
-    Rc::new(Palette::from_colors(colors))
+    Arc::new(Palette::from_colors(colors))
 }
 
 fn open(filename: &str) -> Result<FileHandler, DataError> {
@@ -202,7 +203,7 @@ pub fn read_metadata(filename: &str) -> Result<SffMetadata, DataError> {
     })
 }
 
-pub fn read_palettes(filename: &str) -> Result<Vec<Rc<Palette>>, DataError> {
+pub fn read_palettes(filename: &str) -> Result<Vec<Arc<Palette>>, DataError> {
     let open_result = open(filename);
 
     if let Err(error) = open_result {
@@ -212,7 +213,7 @@ pub fn read_palettes(filename: &str) -> Result<Vec<Rc<Palette>>, DataError> {
     let handler = open_result.expect("Invalid open result");
     let file = handler.file;
     let head = handler.head;
-    let mut result: Vec<Rc<Palette>> = Vec::new();
+    let mut result: Vec<Arc<Palette>> = Vec::new();
     let mut palnode: Vec<PaletteHeader> = Vec::new();
     let mut reader = FileReader::new(&file);
 
@@ -223,8 +224,8 @@ pub fn read_palettes(filename: &str) -> Result<Vec<Rc<Palette>>, DataError> {
     }
 
     for palette in palnode.iter() {
-        let pal: Rc<Palette> = match palette.len {
-            0 => Rc::clone(&result[palette.linked as usize]),
+        let pal: Arc<Palette> = match palette.len {
+            0 => Arc::clone(&result[palette.linked as usize]),
             len if len > 0 => {
                 let mut offset: usize = head.ldata_offset as usize;
                 offset += palette.offset as usize;
@@ -234,7 +235,7 @@ pub fn read_palettes(filename: &str) -> Result<Vec<Rc<Palette>>, DataError> {
                 let mut tmp_arr_reader = BufferReader::new(&tmp_arr);
                 matrix_to_pal(&mut tmp_arr_reader, palette.numcols as usize)
             }
-            _ => Rc::new(Palette::new(0)),
+            _ => Arc::new(Palette::new(0)),
         };
 
         result.push(pal);
@@ -255,7 +256,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
     let head = handler.head;
     let mut reader = FileReader::new(&file);
 
-    let mut sffdata: HashMap<i32, SffData> = HashMap::new();
+    let mut sffdata: HashMap<i32, MutableSffData> = HashMap::new();
     let mut paldata: Vec<SffPal> = Vec::new();
     let mut sprnode: Vec<SpriteHeader> = Vec::new();
     let mut palnode: Vec<PaletteHeader> = Vec::new();
@@ -283,8 +284,8 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
     }
 
     for palette in palnode.iter() {
-        let pal: Rc<Palette> = match palette.len {
-            0 => Rc::clone(&paldata[palette.linked as usize].pal),
+        let pal: Arc<Palette> = match palette.len {
+            0 => Arc::clone(&paldata[palette.linked as usize].pal),
             len if len > 0 => {
                 let mut offset: usize = head.ldata_offset as usize;
                 offset += palette.offset as usize;
@@ -294,7 +295,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
                 let mut tmp_arr_reader = BufferReader::new(&tmp_arr);
                 matrix_to_pal(&mut tmp_arr_reader, palette.numcols as usize)
             }
-            _ => Rc::new(Palette::new(0)),
+            _ => Arc::new(Palette::new(0)),
         };
 
         paldata.push(SffPal {
@@ -356,15 +357,15 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
                 image = Rc::new(RefCell::new(RawImage {
                     w: sprite.w as usize,
                     h: sprite.h as usize,
-                    pixels: Rc::new(tmp_arr),
-                    color_table: Rc::clone(&paldata[sprite.palindex as usize].pal),
+                    pixels: Arc::new(tmp_arr),
+                    color_table: Arc::clone(&paldata[sprite.palindex as usize].pal),
                 }));
             }
 
             linked = -1;
         }
 
-        sffdata.insert(counter as i32, SffData {
+        sffdata.insert(counter as i32, MutableSffData {
             groupno: sprite.groupno,
             imageno: sprite.imageno,
             x: sprite.x,
@@ -388,7 +389,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
     let mut result: Vec<SffData> = Vec::new();
 
     for value in sffdata.values() {
-        result.push(value.clone());
+        result.push(value.to_sff_data());
     }
 
     Result::Ok(result)

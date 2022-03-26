@@ -4,6 +4,7 @@ use gdnative::{core_types::{Point2, Vector2}, api::visual_server::TextureFlags};
 
 use crate::{core::{sprite_id::SpriteId, sound_id::SoundId, enumerations::{SpriteEffects, ElementType}, error::DataError}, io::text_section::TextSection, drawing::{print_data::PrintData, sprite_file::SpriteFile}, systems::visual_server::texture::Texture};
 
+#[derive(Clone)]
 pub struct Element {
     pub prefix: String,
     pub animationnumber: i32,

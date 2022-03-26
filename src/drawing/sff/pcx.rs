@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use std::cmp;
 use std::rc::Rc;
 use std::result::Result;
+use std::sync::Arc;
 
 use crate::core::error::DataError;
 
@@ -21,7 +22,7 @@ pub struct PcxHeader {
     y_max: u16,
     h_dpi: u16,
     y_dpi: u16,
-    color_map: Rc<Palette>,
+    color_map: Arc<Palette>,
     reserved: u8,
     n_planes: u8,
     bytes_per_line: u16,
@@ -30,7 +31,7 @@ pub struct PcxHeader {
     v_screen_size: u16,
 }
 
-fn read_palette(reader: &mut dyn DataReader) -> Rc<Palette> {
+fn read_palette(reader: &mut dyn DataReader) -> Arc<Palette> {
     let mut palette = Palette::new(16);
 
     for i in 0..16 {
@@ -41,7 +42,7 @@ fn read_palette(reader: &mut dyn DataReader) -> Rc<Palette> {
         palette.colors[i] = RawColor::new(r, g, b, if i == 0 { 0 } else { 255 });
     }
 
-    Rc::new(palette)
+    Arc::new(palette)
 }
 
 impl PcxHeader {
@@ -68,7 +69,7 @@ impl PcxHeader {
         let y_max: u16 = reader.get_u16();
         let h_dpi: u16 = reader.get_u16();
         let y_dpi: u16 = reader.get_u16();
-        let color_map: Rc<Palette> = read_palette(reader);
+        let color_map: Arc<Palette> = read_palette(reader);
         let reserved: u8 = reader.get_u8();
         let n_planes: u8 = reader.get_u8();
         let bytes_per_line: u16 = reader.get_u16();
@@ -162,8 +163,8 @@ pub fn read_image_1(reader: &mut dyn DataReader, header: &PcxHeader) -> Rc<RefCe
     Rc::new(RefCell::new(RawImage {
         w: header.width() as usize,
         h: header.height() as usize,
-        pixels: Rc::new(pixels),
-        color_table: Rc::new(palette),
+        pixels: Arc::new(pixels),
+        color_table: Arc::new(palette),
     }))
 }
 
@@ -203,8 +204,8 @@ pub fn read_image_4(reader: &mut dyn DataReader, header: &PcxHeader) -> Rc<RefCe
     Rc::new(RefCell::new(RawImage {
         w: header.width() as usize,
         h: header.height() as usize,
-        pixels: Rc::new(pixels),
-        color_table: Rc::clone(&header.color_map),
+        pixels: Arc::new(pixels),
+        color_table: Arc::clone(&header.color_map),
     }))
 }
 
@@ -246,8 +247,8 @@ pub fn read_image_8(reader: &mut dyn DataReader, header: &PcxHeader) -> Rc<RefCe
     Rc::new(RefCell::new(RawImage {
         w: header.width() as usize,
         h: header.height() as usize,
-        pixels: Rc::new(pixels),
-        color_table: Rc::new(Palette::from_colors(colors)),
+        pixels: Arc::new(pixels),
+        color_table: Arc::new(Palette::from_colors(colors)),
     }))
 }
 

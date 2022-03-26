@@ -9,6 +9,8 @@ pub struct SpriteId {
 }
 
 impl SpriteId {
+    pub const SMALL_PORTRAIT: SpriteId = SpriteId { group: 9000, image: 0 };
+
     pub fn new(group: i16, image: i16) -> Self {
         SpriteId { group: group, image: image }
     }

@@ -91,9 +91,8 @@ impl MugenFont {
                 for sff_item in images.iter() {
                     let character = char::from_u32(sff_item.imageno as u32)
                         .ok_or(DataError::new(format!("Invalid char code: {}", sff_item.imageno)))?;
-                    let mut image = sff_item.image.borrow_mut();
-                    image.color_table = palette.clone();
-                    bitmap_font.add_texture(Texture::allocate(image.create_image(), TextureFlags::FLAGS_DEFAULT));
+                    let image = &sff_item.image;
+                    bitmap_font.add_texture(Texture::allocate(image.create_image_with_palette(&palette), TextureFlags::FLAGS_DEFAULT));
                     bitmap_font.add_character(
                         character,
                         texture_id,

@@ -20,7 +20,6 @@ use super::components::MenuSoundManager;
 pub fn load_menus(
     mut commands: Commands,
     sprite_system: Res<SpriteSystem>,
-    mut profile_loader: ResMut<ProfileLoader>,
 ) -> Result<(), DataError> {
     let sprite_shader_code = file_system::open_file_as_string("res://resources/sprite.glsl")?;
     let sprite_shader = Shader::allocate(&sprite_shader_code);
@@ -35,8 +34,6 @@ pub fn load_menus(
     let animation_loader = AnimationLoader::new();
     let animations = animation_loader.load_animations(&menu_data.anim_path)?;
     let animation_manager = AnimationManager::new(&menu_data.anim_path, animations);
-
-    profile_loader.initialize()?;
 
     // Screens
     let title_screen = TitleScreen::build(
@@ -53,8 +50,11 @@ pub fn load_menus(
         &animation_manager
     )?;
 
+    let profile_loader = ProfileLoader::build(&select_screen, &sprite_system)?;
+
     let sound_manager = SoundManager::load(&menu_data.sound_path)?;
 
+    commands.insert_resource(profile_loader);
     commands.insert_resource(MenuSoundManager(sound_manager));
     commands.insert_resource(menu_data);
     commands.insert_resource(title_screen);

@@ -26,7 +26,6 @@ impl Game {
                 .insert_resource(input)
                 .insert_resource(DeltaTime::default())
                 .insert_resource(SpriteSystem::new())
-                .insert_resource(ProfileLoader::default())
                 .add_plugin(CorePlugin::default())
                 .add_plugin(TransformPlugin::default())
                 .add_plugin(VisualServerPlugin::default())
@@ -40,7 +39,7 @@ impl Game {
     }
 
     #[export]
-    pub fn _physics_process(&mut self, _owner: TRef<Node2D>, _delta: Variant) {
+    pub fn _process(&mut self, _owner: TRef<Node2D>, _delta: Variant) {
         {
             let mut delta_time = self.app.world.get_resource_mut::<DeltaTime>().unwrap();
             delta_time.0 = f64::from_variant(&_delta).unwrap();

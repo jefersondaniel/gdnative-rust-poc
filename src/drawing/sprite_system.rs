@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::core::error::DataError;
 use super::mugen_font::MugenFont;
@@ -25,11 +25,11 @@ impl SpriteSystem {
         SpriteFile::load(path)
     }
 
-    pub fn load_palettes(&self, path: &str) -> Result<Vec<Rc<Palette>>, DataError> {
+    pub fn load_palettes(&self, path: &str) -> Result<Vec<Arc<Palette>>, DataError> {
         sff_parser::read_palettes(&path)
     }
 
-    pub fn load_palette(&self, path: &str) -> Result<Rc<Palette>, DataError> {
+    pub fn load_palette(&self, path: &str) -> Result<Arc<Palette>, DataError> {
         sff_parser::read_palette(&path)
     }
 }

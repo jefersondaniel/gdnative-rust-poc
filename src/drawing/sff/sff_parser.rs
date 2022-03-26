@@ -1,10 +1,11 @@
+use std::sync::Arc;
+
 use crate::core::error::DataError;
 
 use super::image::Palette;
 use super::sff_common::{SffData, SffMetadata};
 use super::sffv1;
 use super::sffv2;
-use std::rc::Rc;
 
 pub fn read_metadata(path: &str) -> Result<SffMetadata, DataError> {
     let result_v2 = sffv2::read_metadata(&path);
@@ -16,11 +17,11 @@ pub fn read_metadata(path: &str) -> Result<SffMetadata, DataError> {
     result_v2
 }
 
-pub fn read_palette(path: &str) -> Result<Rc<Palette>, DataError> {
+pub fn read_palette(path: &str) -> Result<Arc<Palette>, DataError> {
     sffv1::read_palette(&path)
 }
 
-pub fn read_palettes(path: &str) -> Result<Vec<Rc<Palette>>, DataError> {
+pub fn read_palettes(path: &str) -> Result<Vec<Arc<Palette>>, DataError> {
     sffv2::read_palettes(&path)
 }
 

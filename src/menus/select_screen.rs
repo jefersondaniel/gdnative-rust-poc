@@ -4,6 +4,7 @@ use crate::{elements::element::Element, io::text_file::TextFile, core::{error::D
 
 use super::non_combat_screen::NonCombatScreen;
 
+#[derive(Clone)]
 pub struct SelectScreen {
     pub non_combat_screen: NonCombatScreen,
     pub cellbg: Element,

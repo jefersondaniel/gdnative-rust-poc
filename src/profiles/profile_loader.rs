@@ -1,11 +1,15 @@
-use crate::{io::{file_system, text_file::TextFile}, core::{error::DataError, constants::DATA_PATH, enumerations::PlayerSelectType}};
+use std::collections::HashMap;
+
+use crate::{io::{file_system, text_file::TextFile}, core::{error::DataError, constants::DATA_PATH, enumerations::PlayerSelectType}, menus::select_screen::SelectScreen, drawing::sprite_system::SpriteSystem};
 
 use super::{stage_profile::StageProfile, player_profile::{PlayerProfile, PlayerSelect}};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Clone)]
 pub struct ProfileLoader {
     pub stages: Vec<StageProfile>,
-    pub players: Vec<PlayerSelect>
+    pub players: Vec<PlayerSelect>,
+    player_map: Option<HashMap<(i32, i32), PlayerSelect>>,
+    select_screen: SelectScreen,
 }
 
 fn parse_profile_line(line: &str) -> Option<(String, String)> {
@@ -43,15 +47,23 @@ fn parse_profile_line(line: &str) -> Option<(String, String)> {
 }
 
 impl ProfileLoader {
-    pub fn initialize(&mut self) -> Result<(), DataError> {
+    pub fn build(select_screen: &SelectScreen, sprite_system: &SpriteSystem) -> Result<Self, DataError> {
         let textfile = file_system::open_text_file(
             &file_system::combine_paths(DATA_PATH, "data/select.def")
         )?;
 
-        self.build_stage_profiles(&textfile)?;
-        self.build_player_profiles(&textfile)?;
+        let mut profile_loader = ProfileLoader {
+            select_screen: select_screen.clone(),
+            stages: Default::default(),
+            players: Default::default(),
+            player_map: Default::default(),
+        };
 
-        Ok(())
+        profile_loader.build_stage_profiles(&textfile)?;
+        profile_loader.build_player_profiles(&textfile, sprite_system)?;
+        profile_loader.select_screen = select_screen.clone();
+
+        Ok(profile_loader)
     }
 
     fn build_stage_profiles(&mut self, textfile: &TextFile) -> Result<(), DataError> {
@@ -74,7 +86,7 @@ impl ProfileLoader {
         Ok(())
     }
 
-    fn build_player_profiles(&mut self, textfile: &TextFile) -> Result<(), DataError> {
+    fn build_player_profiles(&mut self, textfile: &TextFile, sprite_system: &SpriteSystem) -> Result<(), DataError> {
         self.players.clear();
 
         let textsection = textfile.get_section("Characters")?;
@@ -94,11 +106,41 @@ impl ProfileLoader {
             if let Some((player_path, stage_path)) = parse_profile_line(&line_text) {
                 self.players.push(PlayerSelect {
                     select_type: PlayerSelectType::Profile,
-                    profile: Some(PlayerProfile::build(&player_path, &stage_path)?),
+                    profile: Some(PlayerProfile::build(&player_path, &stage_path, &sprite_system)?),
                 });
             }
         }
 
         Ok(())
+    }
+
+    pub fn get_player_on_grid(&mut self, position: (i32, i32)) -> Option<PlayerSelect> {
+        let player_map = &self.player_map;
+
+        match player_map {
+            Some(map) => map.get(&position).cloned(),
+            None => {
+                let mut map = HashMap::<(i32, i32), PlayerSelect>::new();
+                let mut index = 0;
+
+                for x in 0..self.select_screen.rows {
+                    for y in 0..self.select_screen.columns {
+                        if index >= self.players.len() {
+                            break;
+                        }
+
+                        map.insert((x, y), self.players[index].clone());
+                        index += 1;
+                    }
+
+                    if index >= self.players.len() {
+                        break;
+                    }
+                }
+
+                self.player_map = Some(map.clone());
+                map.get(&position).cloned()
+            }
+        }
     }
 }

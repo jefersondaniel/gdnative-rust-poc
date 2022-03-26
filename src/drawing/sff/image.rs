@@ -3,7 +3,6 @@ use gdnative::api::image::Image;
 use gdnative::api::visual_server::TextureFlags;
 use gdnative::core_types::ByteArray;
 use gdnative::prelude::Unique;
-use std::rc::Rc;
 use std::sync::Arc;
 
 use crate::systems::visual_server::texture::Texture;
@@ -67,20 +66,45 @@ impl Palette {
 
         true
     }
+
+    pub fn create_texture(&self) -> Arc<Texture> {
+        let width = self.colors.len();
+        let mut my_byte_array: Vec<u8> = Vec::with_capacity(width * 4);
+
+        for color in self.colors.iter() {
+            my_byte_array.push(color.r);
+            my_byte_array.push(color.g);
+            my_byte_array.push(color.b);
+            my_byte_array.push(color.a);
+        }
+
+        let dest = ByteArray::from_slice(my_byte_array.as_slice());
+        let image = Image::new();
+
+        image.create_from_data(
+            width as i64,
+            1 as i64,
+            false,
+            Image::FORMAT_RGBA8,
+            dest,
+        );
+
+        Texture::allocate(image, TextureFlags(0))
+    }
 }
 
 #[derive(Clone)]
 pub struct RawImage {
     pub w: usize,
     pub h: usize,
-    pub pixels: Rc<Vec<u8>>,
-    pub color_table: Rc<Palette>,
+    pub pixels: Arc<Vec<u8>>,
+    pub color_table: Arc<Palette>,
 }
 
 impl RawImage {
     pub fn empty() -> RawImage {
-        let pixels = Rc::new(Vec::new());
-        let color_table = Rc::new(Palette::new(0));
+        let pixels = Arc::new(Vec::new());
+        let color_table = Arc::new(Palette::new(0));
 
         RawImage {
             w: 0,
@@ -90,11 +114,11 @@ impl RawImage {
         }
     }
 
-    pub fn create_image(&self) -> Ref<Image, Unique> {
+    pub fn create_image_with_palette(&self, palette: &Palette) -> Ref<Image, Unique> {
         let mut my_byte_array: Vec<u8> = Vec::with_capacity(self.w * self.h * 4);
 
         for &pixel in self.pixels.iter() {
-            let color = &self.color_table.colors[pixel as usize];
+            let color = &palette.colors[pixel as usize];
             my_byte_array.push(color.r);
             my_byte_array.push(color.g);
             my_byte_array.push(color.b);
@@ -112,6 +136,10 @@ impl RawImage {
             dest,
         );
         image
+    }
+
+    pub fn create_image(&self) -> Ref<Image, Unique> {
+        self.create_image_with_palette(&self.color_table)
     }
 
     pub fn create_monochromatic_texture(&self, flags: TextureFlags) -> Arc<Texture> {

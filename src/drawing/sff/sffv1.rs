@@ -4,13 +4,14 @@ use gdnative::prelude::Unique;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::core::error::DataError;
 
 use super::data::{BufferAccess, BufferReader, DataReader, FileReader};
 use super::image::{Palette, RawColor, RawImage};
 use super::pcx::read_pcx;
-use super::sff_common::{SffData, SffPal, SffMetadata};
+use super::sff_common::{MutableSffData, SffData, SffPal, SffMetadata};
 
 #[allow(dead_code)]
 struct FileHeader {
@@ -100,7 +101,7 @@ fn read_sprite_header(reader: &mut dyn DataReader) -> SpriteHeader {
     }
 }
 
-fn matrix_to_pal(reader: &mut dyn DataReader) -> Rc<Palette> {
+fn matrix_to_pal(reader: &mut dyn DataReader) -> Arc<Palette> {
     let mut colors: Vec<RawColor> = Vec::new();
     for a in 0..256 {
         let r = reader.get_u8();
@@ -108,7 +109,7 @@ fn matrix_to_pal(reader: &mut dyn DataReader) -> Rc<Palette> {
         let b = reader.get_u8();
         colors.push(RawColor::new(r, g, b, if a == 0 { 0 } else { 255 }));
     }
-    Rc::new(Palette::from_colors(colors))
+    Arc::new(Palette::from_colors(colors))
 }
 
 fn open(filename: &str) -> Result<FileHandler, DataError> {
@@ -210,7 +211,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
     let mut actual_palindex: i16 = 0;
     let mut shared_image: Vec<usize> = Vec::new();
     let mut ind_image: Vec<usize> = Vec::new();
-    let mut sffdata: HashMap<i32, SffData> = HashMap::new();
+    let mut sffdata: HashMap<i32, MutableSffData> = HashMap::new();
     let mut paldata: Vec<SffPal> = Vec::new();
 
     file.seek(head.first_offset as i64);
@@ -230,7 +231,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
 
         file.seek(actual_offset as i64);
 
-        let mut sffitem = SffData {
+        let mut sffitem = MutableSffData {
             image: Rc::new(RefCell::new(RawImage::empty())),
             groupno: 0,
             imageno: 0,
@@ -334,14 +335,14 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
     }
 
     if head.is_shared {
-        let mut force_pal = Rc::new(Palette::new(0));
+        let mut force_pal = Arc::new(Palette::new(0));
         let mut have0 = false;
         for other in ind_image.iter() {
             match sffdata.get(&(*other as i32)) {
                 Some(linked) => {
                     if linked.groupno == 0 {
                         have0 = true;
-                        force_pal = Rc::clone(&linked.image.borrow().color_table);
+                        force_pal = Arc::clone(&linked.image.borrow().color_table);
                         break;
                     }
                 },
@@ -360,7 +361,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
                     Some(linked) => {
                         if linked.groupno == 9000 && linked.imageno == 0 {
                             have90 = true;
-                            force_pal = Rc::clone(&linked.image.borrow().color_table);
+                            force_pal = Arc::clone(&linked.image.borrow().color_table);
                             break;
                         }
                     },
@@ -375,7 +376,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
             if !have90 {
                 match sffdata.get(&(ind_image[0] as i32)) {
                     Some(linked) => {
-                        force_pal = Rc::clone(&linked.image.borrow().color_table);
+                        force_pal = Arc::clone(&linked.image.borrow().color_table);
                     },
                     None => {
                         return Result::Err(DataError::new("invalid shared image: k = 0".to_string()));
@@ -421,7 +422,7 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
         for other in shared_image.iter() {
             match sffdata.get_mut(&(*other as i32)) {
                 Some(shared) => {
-                    shared.image.borrow_mut().color_table = Rc::clone(&force_pal);
+                    shared.image.borrow_mut().color_table = Arc::clone(&force_pal);
                     shared.palindex = 0;
                 },
                 None => {
@@ -439,13 +440,13 @@ pub fn read_images(filename: &str, groups: &[i16]) -> Result<Vec<SffData>, DataE
     let mut result: Vec<SffData> = Vec::new();
 
     for value in sffdata.values() {
-        result.push(value.clone());
+        result.push(value.to_sff_data());
     }
 
     Result::Ok(result)
 }
 
-pub fn load_pal_format_pal(filename: &str) -> Result<Rc<Palette>, DataError> {
+pub fn load_pal_format_pal(filename: &str) -> Result<Arc<Palette>, DataError> {
     let mut pal: Palette = Palette::new(0);
     let file = File::new();
     let result = file.open(filename, File::READ);
@@ -494,10 +495,10 @@ pub fn load_pal_format_pal(filename: &str) -> Result<Rc<Palette>, DataError> {
 
     file.close();
 
-    Result::Ok(Rc::new(pal))
+    Result::Ok(Arc::new(pal))
 }
 
-pub fn load_pal_format_act(filename: &str) -> Result<Rc<Palette>, DataError> {
+pub fn load_pal_format_act(filename: &str) -> Result<Arc<Palette>, DataError> {
     let mut pal: Palette = Palette::new(0);
     let file = File::new();
     let result = file.open(filename, File::READ);
@@ -528,10 +529,10 @@ pub fn load_pal_format_act(filename: &str) -> Result<Rc<Palette>, DataError> {
 
     file.close();
 
-    Result::Ok(Rc::new(pal))
+    Result::Ok(Arc::new(pal))
 }
 
-pub fn read_palette(palette_path: &str) -> Result<Rc<Palette>, DataError> {
+pub fn read_palette(palette_path: &str) -> Result<Arc<Palette>, DataError> {
     let act_extension = ".act";
     let palette_result;
 

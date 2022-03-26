@@ -11,7 +11,7 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct SffPal {
-    pub pal: Rc<Palette>,
+    pub pal: Arc<Palette>,
     pub itemno: i32,
     pub groupno: i32,
     pub is_used: bool,
@@ -20,8 +20,33 @@ pub struct SffPal {
 }
 
 #[derive(Clone)]
-pub struct SffData {
+pub struct MutableSffData {
     pub image: Rc<RefCell<RawImage>>,
+    pub groupno: i16,
+    pub imageno: i16,
+    pub x: i16,
+    pub y: i16,
+    pub palindex: i16,
+    pub linked: i16,
+}
+
+impl MutableSffData {
+    pub fn to_sff_data(&self) -> SffData {
+        SffData {
+            image: Arc::new(self.image.borrow().clone()),
+            groupno: self.groupno,
+            imageno: self.imageno,
+            x: self.x,
+            y: self.y,
+            palindex: self.palindex,
+            linked: self.linked,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct SffData {
+    pub image: Arc<RawImage>,
     pub groupno: i16,
     pub imageno: i16,
     pub x: i16,
@@ -41,20 +66,23 @@ pub struct SffMetadata {
 impl SffData {
     pub fn create_texture(
         &self,
-        palette: Option<Rc<Palette>>,
+        preferred_palette: Option<Arc<Palette>>,
         flags: TextureFlags
     ) -> Result<Arc<Texture>, DataError> {
-        let mut raw_image = self.image.borrow().clone();
+        let raw_image = self.image.clone();
 
-        if let Some(palette_rc) = palette {
-            if !palette_rc.is_empty() {
-                if self.palindex == 0 {
-                    raw_image.color_table = Rc::clone(&palette_rc);
+        let palette = match preferred_palette {
+            Some(palette) => {
+                if palette.is_empty() || self.palindex != 0 {
+                    self.image.color_table.clone()
+                } else {
+                    palette.clone()
                 }
             }
-        }
+            None => self.image.color_table.clone()
+        };
 
-        let image = raw_image.create_image();
+        let image = raw_image.create_image_with_palette(&palette);
 
         Ok(Texture::allocate(
             image,
@@ -63,20 +91,19 @@ impl SffData {
     }
 
     pub fn create_monochromatic_texture(&self, flags: TextureFlags) -> Arc<Texture> {
-        self.image.borrow().create_monochromatic_texture(flags)
+        self.image.create_monochromatic_texture(flags)
     }
 
-    pub fn create_palette_texture(&self, palette: Option<Rc<Palette>>) -> Arc<Texture> {
-        let mut raw_image = self.image.borrow().clone();
-
-        if let Some(palette_rc) = palette {
-            if !palette_rc.is_empty() {
-                if self.palindex == 0 {
-                    raw_image.color_table = Rc::clone(&palette_rc);
+    pub fn create_palette_texture(&self, palette: Option<Arc<Palette>>) -> Arc<Texture> {
+        match palette {
+            Some(palette) => {
+                if palette.is_empty() || self.palindex == 0 {
+                    self.image.color_table.create_texture()
+                } else {
+                    palette.create_texture()
                 }
-            }
+            },
+            None => self.image.color_table.create_texture()
         }
-
-        raw_image.create_palette_texture()
     }
 }

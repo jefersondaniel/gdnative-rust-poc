@@ -1,8 +1,8 @@
-use std::collections::{BTreeMap};
+use std::{collections::{BTreeMap}, sync::{Arc, RwLock}};
 
-use crate::{core::{error::DataError, enumerations::PlayerSelectType}, io::{file_system, text_section::TextSection}};
+use crate::{core::{error::DataError, enumerations::PlayerSelectType}, io::{file_system, text_section::TextSection}, drawing::{sprite_system::SpriteSystem, sprite_file::SpriteFile}};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct PlayerProfile {
     pub definition_path: String,
     pub player_name: String,
@@ -21,9 +21,10 @@ pub struct PlayerProfile {
     pub stage_path: String,
     pub palette_files: BTreeMap<usize, String>,
     pub base_path: String,
+    pub sprite_file: Arc<RwLock<SpriteFile>>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct PlayerSelect {
     pub select_type: PlayerSelectType,
     pub profile: Option<PlayerProfile>,
@@ -134,8 +135,7 @@ impl PlayerProfile {
     pub fn build(
         definition_path: &str,
         stage_path: &str,
-        // sprite_file: &mut SpriteFile,
-        // animation_manager: &AnimationManager,
+        sprite_system: &SpriteSystem,
     ) -> Result<PlayerProfile, DataError> {
         let textfile = file_system::open_text_file(definition_path)?;
         let infosection = textfile.get_section("info")?;
@@ -143,6 +143,8 @@ impl PlayerProfile {
         let base_path = file_system::get_directory(&textfile.filepath);
         let common_state_file = get_common_state_file(&base_path, filesection.get_attribute_or_default("stcommon"));
         let command_path = combine_paths(&base_path, filesection.get_attribute_or_default("cmd"));
+        let sprite_path = combine_paths(&base_path, filesection.get_attribute_or_default("sprite"));
+        let sprite_file = Arc::new(RwLock::new(sprite_system.get_sprite_file(&sprite_path)?));
 
         Ok(PlayerProfile {
             player_name: infosection.get_attribute_or_default("name"),
@@ -153,7 +155,7 @@ impl PlayerProfile {
             palette_order: build_palette_order(infosection.get_attribute_or_default("pal.defaults")),
             constants_path: combine_paths(&base_path, filesection.get_attribute_or_default("cns")),
             state_files: build_state_files(&filesection, &base_path, &common_state_file, &command_path),
-            sprite_path: combine_paths(&base_path, filesection.get_attribute_or_default("sprite")),
+            sprite_path,
             animation_path: combine_paths(&base_path, filesection.get_attribute_or_default("anim")),
             sound_path: combine_paths(&base_path, filesection.get_attribute_or_default("sound")),
             stage_path: stage_path.to_string(),
@@ -162,6 +164,7 @@ impl PlayerProfile {
             base_path,
             command_path,
             common_state_file,
+            sprite_file,
         })
     }
 }

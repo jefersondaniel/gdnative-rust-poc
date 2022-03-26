@@ -1,9 +1,9 @@
 use bevy_app::{AppBuilder, Plugin, EventWriter};
 use bevy_ecs::prelude::*;
 use bevy_transform::{hierarchy::{BuildChildren, DespawnRecursiveExt}, components::Parent};
-use gdnative::core_types::Transform2D;
+use gdnative::{core_types::Transform2D, api::visual_server::TextureFlags};
 
-use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::CanvasItemBundle, sprite::{SpriteBundle, Sprite}}}, core::constants};
+use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::CanvasItemBundle, sprite::{SpriteBundle, Sprite}}}, core::{constants, sprite_id::SpriteId}, profiles::profile_loader::ProfileLoader};
 
 use super::setup_layers::HudLayer;
 
@@ -16,6 +16,7 @@ struct ScreenMarker;
 fn show_screen(
     mut commands: Commands,
     mut background_group_event: EventWriter<BackgroundGroupEvent>,
+    mut profile_loader: ResMut<ProfileLoader>,
     hud_layer_query: Query<Entity, With<HudLayer>>,
     select_screen: Res<SelectScreen>
 ) {
@@ -26,8 +27,12 @@ fn show_screen(
         .insert(ScreenMarker::default())
         .id();
 
+    let background_layer = commands.spawn_bundle(CanvasItemBundle::default())
+        .insert(Parent(screen_entity))
+        .id();
+
     background_group_event.send(BackgroundGroupEvent {
-        layer: screen_entity.clone(),
+        layer: background_layer.clone(),
         background_group: background_group.clone(),
     });
 
@@ -45,10 +50,27 @@ fn show_screen(
                     size: cellbg.texture.size,
                     ..Default::default()
                 },
-                z_index: (constants::BG_LAYER_FRONT_Z_INDEX_MAX + 1).into(),
                 transform: Transform2D::translation(location.x, location.y),
                 ..Default::default()
             }).insert(Parent(screen_entity));
+
+            if let Some(select) = profile_loader.get_player_on_grid((x, y)) {
+                let profile = select.profile.unwrap();
+                let mut sprite_file = profile.sprite_file.write().unwrap();
+                if let Ok(small_portrait) = sprite_file.get_sprite(&SpriteId::SMALL_PORTRAIT) {
+                    let small_portrait_texture = small_portrait.create_texture(None, TextureFlags(0)).unwrap();
+
+                    commands.spawn_bundle(SpriteBundle {
+                        texture: small_portrait_texture.clone(),
+                        sprite: Sprite {
+                            size: small_portrait_texture.size,
+                            ..Default::default()
+                        },
+                        transform: Transform2D::translation(location.x, location.y),
+                        ..Default::default()
+                    }).insert(Parent(screen_entity));
+                }
+            }
         }
     }
 

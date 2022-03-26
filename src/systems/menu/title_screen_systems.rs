@@ -15,7 +15,7 @@ struct MenuOptionText {
 struct MenuContainer;
 
 #[derive(Default)]
-struct TitleScreenMarker;
+struct TitleScreenTag;
 
 fn show_title_screen(
     mut commands: Commands,
@@ -32,7 +32,7 @@ fn show_title_screen(
     let height = title_screen.spacing.y * (title_screen.visiblemenuitems as f32 - 1.0) + title_screen.marginytop as f32 + title_screen.marginybottom as f32;
     let clip_rect = ClipRect::global(Rect2::new(Point2::new(0.0, 1.0 + title_screen.menuposition.y - title_screen.spacing.y), Size2::new(configuration.screen_size.width, height)));
     let screen_entity = commands.spawn_bundle(CanvasItemBundle::default())
-        .insert(TitleScreenMarker::default())
+        .insert(TitleScreenTag::default())
         .id();
     let menu_container_entity = commands.spawn_bundle(CanvasItemBundle {
         clip_rect,
@@ -195,7 +195,7 @@ fn update_active_menu_item(
 
 fn hide_title_screen(
     mut commands: Commands,
-    query: Query<Entity, With<TitleScreenMarker>>,
+    query: Query<Entity, With<TitleScreenTag>>,
 ) {
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
