@@ -1,5 +1,7 @@
 use std::{collections::{BTreeMap}, sync::{Arc, RwLock}};
 
+use gdnative::core_types::Size2;
+
 use crate::{core::{error::DataError, enumerations::PlayerSelectType}, io::{file_system, text_section::TextSection}, drawing::{sprite_system::SpriteSystem, sprite_file::SpriteFile}};
 
 #[derive(Clone)]
@@ -9,6 +11,7 @@ pub struct PlayerProfile {
     pub display_name: String,
     pub author: String,
     pub version: String,
+    pub localcoord: Size2,
     pub mugen_version: String,
     pub palette_order: Vec<usize>,
     pub command_path: String,
@@ -152,6 +155,7 @@ impl PlayerProfile {
             author: infosection.get_attribute_or_default("author"),
             version: infosection.get_attribute_or_default("versiondate"),
             mugen_version: infosection.get_attribute_or_default("mugenversion"),
+            localcoord: infosection.get_attribute_or_default("localcoord"),
             palette_order: build_palette_order(infosection.get_attribute_or_default("pal.defaults")),
             constants_path: combine_paths(&base_path, filesection.get_attribute_or_default("cns")),
             state_files: build_state_files(&filesection, &base_path, &common_state_file, &command_path),

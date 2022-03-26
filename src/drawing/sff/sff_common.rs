@@ -106,4 +106,8 @@ impl SffData {
             None => self.image.color_table.create_texture()
         }
     }
+
+    pub fn offset(&self) -> Point2 {
+        return Point2::new(-self.x as f32, -self.y as f32)
+    }
 }

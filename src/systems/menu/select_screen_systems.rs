@@ -1,9 +1,9 @@
 use bevy_app::{AppBuilder, Plugin, EventWriter};
 use bevy_ecs::prelude::*;
 use bevy_transform::{hierarchy::{BuildChildren, DespawnRecursiveExt}, components::Parent};
-use gdnative::{core_types::Transform2D, api::visual_server::TextureFlags};
+use gdnative::{core_types::{Transform2D, Point2}, api::visual_server::TextureFlags};
 
-use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::CanvasItemBundle, sprite::{SpriteBundle, Sprite}}}, core::{constants, sprite_id::SpriteId}, profiles::profile_loader::ProfileLoader};
+use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::CanvasItemBundle, sprite::{SpriteBundle, Sprite}}}, core::{constants, sprite_id::SpriteId, configuration::{Configuration, ScaleForScreen}}, profiles::profile_loader::ProfileLoader};
 
 use super::setup_layers::HudLayer;
 
@@ -17,6 +17,7 @@ fn show_screen(
     mut commands: Commands,
     mut background_group_event: EventWriter<BackgroundGroupEvent>,
     mut profile_loader: ResMut<ProfileLoader>,
+    configuration: Res<Configuration>,
     hud_layer_query: Query<Entity, With<HudLayer>>,
     select_screen: Res<SelectScreen>
 ) {
@@ -44,10 +45,14 @@ fn show_screen(
             location.x += (select_screen.cellsize.x + select_screen.cellspacing as f32) * x as f32;
             location.y += (select_screen.cellsize.y + select_screen.cellspacing as f32) * y as f32;
 
+            let cell_texture = cellbg.sff.create_texture(None, TextureFlags(0)).unwrap();
+            let sff_offset = cellbg.sff.offset();
+
             commands.spawn_bundle(SpriteBundle {
-                texture: cellbg.texture.clone(),
+                texture: cell_texture.clone(),
                 sprite: Sprite {
-                    size: cellbg.texture.size,
+                    size: cell_texture.size,
+                    offset: Point2::new(sff_offset.x + cellbg.offset.x, sff_offset.y + cellbg.offset.y),
                     ..Default::default()
                 },
                 transform: Transform2D::translation(location.x, location.y),
@@ -63,7 +68,8 @@ fn show_screen(
                     commands.spawn_bundle(SpriteBundle {
                         texture: small_portrait_texture.clone(),
                         sprite: Sprite {
-                            size: small_portrait_texture.size,
+                            size: small_portrait_texture.size.scale_for_screen(&configuration, profile.localcoord),
+                            offset: small_portrait.offset().scale_for_screen(&configuration, profile.localcoord),
                             ..Default::default()
                         },
                         transform: Transform2D::translation(location.x, location.y),

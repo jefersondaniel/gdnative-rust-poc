@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use gdnative::{core_types::{Point2, Vector2}, api::visual_server::TextureFlags};
+use gdnative::{core_types::{Point2, Vector2}};
 
-use crate::{core::{sprite_id::SpriteId, sound_id::SoundId, enumerations::{SpriteEffects, ElementType}, error::DataError}, io::text_section::TextSection, drawing::{print_data::PrintData, sprite_file::SpriteFile}, systems::visual_server::texture::Texture};
+use crate::{core::{sprite_id::SpriteId, sound_id::SoundId, enumerations::{SpriteEffects, ElementType}, error::DataError}, io::text_section::TextSection, drawing::{print_data::PrintData, sprite_file::SpriteFile, sff::sff_common::SffData}};
 
 #[derive(Clone)]
 pub struct Element {
@@ -19,7 +19,7 @@ pub struct Element {
     pub layerno: i32,
     pub scale: Vector2,
     pub element_type: ElementType,
-    pub texture: Arc<Texture>,
+    pub sff: Arc<SffData>,
 }
 
 impl Element {
@@ -52,8 +52,7 @@ impl Element {
             element_type = ElementType::Text;
         }
 
-        let sff_data = sprite_file.get_sprite(&spriteid)?;
-        let texture = sff_data.create_texture(None, TextureFlags(0))?;
+        let sff = Arc::new(sprite_file.get_sprite(&spriteid)?);
 
         Ok(Element {
             flip,
@@ -69,7 +68,7 @@ impl Element {
             displaytime: textsection.get_attribute_or_default(&format!("{}.displaytime", prefix)),
             layerno: textsection.get_attribute_or_default(&format!("{}.layerno", prefix)),
             scale: textsection.get_attribute_or(&format!("{}.scale", prefix), Vector2::new(1.0, 1.0)),
-            texture,
+            sff,
         })
     }
 }
