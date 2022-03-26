@@ -123,8 +123,8 @@ impl ProfileLoader {
                 let mut map = HashMap::<(i32, i32), PlayerSelect>::new();
                 let mut index = 0;
 
-                for x in 0..self.select_screen.rows {
-                    for y in 0..self.select_screen.columns {
+                for y in 0..self.select_screen.rows {
+                    for x in 0..self.select_screen.columns {
                         if index >= self.players.len() {
                             break;
                         }
