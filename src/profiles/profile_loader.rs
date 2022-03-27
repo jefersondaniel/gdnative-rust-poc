@@ -7,8 +7,8 @@ use super::{stage_profile::StageProfile, player_profile::{PlayerProfile, PlayerS
 #[derive(Clone)]
 pub struct ProfileLoader {
     pub stages: Vec<StageProfile>,
-    pub players: Vec<PlayerSelect>,
-    player_map: Option<HashMap<(i32, i32), PlayerSelect>>,
+    pub players: Vec<Option<PlayerSelect>>,
+    player_map: Option<HashMap<(i32, i32), Option<PlayerSelect>>>,
     select_screen: SelectScreen,
 }
 
@@ -20,6 +20,10 @@ fn parse_profile_line(line: &str) -> Option<(String, String)> {
     let pieces: Vec<&str> = line.split(",").collect();
     let mut player_path: String = "".to_string();
     let mut stage_path: String = "".to_string();
+
+    if pieces.len() == 0 {
+        return None;
+    }
 
     if pieces.len() >= 1 {
         player_path = file_system::combine_paths(
@@ -95,20 +99,24 @@ impl ProfileLoader {
             let line_text = line.to_string();
 
             if line_text.to_lowercase() == "random" {
-                self.players.push(PlayerSelect {
+                self.players.push(Some(PlayerSelect {
                     select_type: PlayerSelectType::Random,
                     profile: None
-                });
+                }));
 
                 continue;
             }
 
             if let Some((player_path, stage_path)) = parse_profile_line(&line_text) {
-                self.players.push(PlayerSelect {
+                self.players.push(Some(PlayerSelect {
                     select_type: PlayerSelectType::Profile,
                     profile: Some(PlayerProfile::build(&player_path, &stage_path, &sprite_system)?),
-                });
+                }));
+
+                continue;
             }
+
+            self.players.push(None);
         }
 
         Ok(())
@@ -116,11 +124,10 @@ impl ProfileLoader {
 
     pub fn get_player_on_grid(&mut self, position: (i32, i32)) -> Option<PlayerSelect> {
         let player_map = &self.player_map;
-
-        match player_map {
+        let result = match player_map {
             Some(map) => map.get(&position).cloned(),
             None => {
-                let mut map = HashMap::<(i32, i32), PlayerSelect>::new();
+                let mut map = HashMap::<(i32, i32), Option<PlayerSelect>>::new();
                 let mut index = 0;
 
                 for y in 0..self.select_screen.rows {
@@ -141,6 +148,11 @@ impl ProfileLoader {
                 self.player_map = Some(map.clone());
                 map.get(&position).cloned()
             }
+        };
+
+        match result {
+            Some(select) => select,
+            None => None,
         }
     }
 }
