@@ -3,7 +3,7 @@ use bevy_ecs::prelude::*;
 use bevy_transform::{hierarchy::{BuildChildren, DespawnRecursiveExt}, components::Parent};
 use gdnative::{core_types::{Transform2D, Point2}, api::visual_server::TextureFlags};
 
-use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::CanvasItemBundle, sprite::{SpriteBundle, Sprite}}}, core::{constants, sprite_id::SpriteId, configuration::{Configuration, ScaleForScreen}}, profiles::profile_loader::ProfileLoader};
+use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::CanvasItemBundle, sprite::{SpriteBundle, Sprite}}}, core::{constants, sprite_id::SpriteId, configuration::{Configuration, ScaleForScreen}, enumerations::PlayerSelectType}, profiles::profile_loader::ProfileLoader};
 
 use super::setup_layers::HudLayer;
 
@@ -37,44 +37,34 @@ fn show_screen(
         background_group: background_group.clone(),
     });
 
-    let cellbg = &select_screen.cellbg;
-
     for y in 0..select_screen.rows {
         for x in 0..select_screen.columns {
-            let mut location = select_screen.grid_position;
-            location.x += (select_screen.cellsize.x + select_screen.cellspacing as f32) * x as f32;
-            location.y += (select_screen.cellsize.y + select_screen.cellspacing as f32) * y as f32;
+            let mut position = select_screen.grid_position;
+            position.x += (select_screen.cellsize.x + select_screen.cellspacing as f32) * x as f32;
+            position.y += (select_screen.cellsize.y + select_screen.cellspacing as f32) * y as f32;
 
-            let cell_texture = cellbg.sff.create_texture(None, TextureFlags(0)).unwrap();
-            let sff_offset = cellbg.sff.offset();
-
-            commands.spawn_bundle(SpriteBundle {
-                texture: cell_texture.clone(),
-                sprite: Sprite {
-                    size: cell_texture.size,
-                    offset: Point2::new(sff_offset.x + cellbg.offset.x, sff_offset.y + cellbg.offset.y),
-                    ..Default::default()
-                },
-                transform: Transform2D::translation(location.x, location.y),
-                ..Default::default()
-            }).insert(Parent(screen_entity));
+            select_screen.cellbg.render(&mut commands, position).insert(Parent(screen_entity));
 
             if let Some(select) = profile_loader.get_player_on_grid((x, y)) {
-                let profile = select.profile.unwrap();
-                let mut sprite_file = profile.sprite_file.write().unwrap();
-                if let Ok(small_portrait) = sprite_file.get_sprite(&SpriteId::SMALL_PORTRAIT) {
-                    let small_portrait_texture = small_portrait.create_texture(None, TextureFlags(0)).unwrap();
+                if select.select_type == PlayerSelectType::Random {
+                    select_screen.cellrandom.render(&mut commands, position).insert(Parent(screen_entity));
+                } else {
+                    let profile = select.profile.unwrap();
+                    let mut sprite_file = profile.sprite_file.write().unwrap();
+                    if let Ok(small_portrait) = sprite_file.get_sprite(&SpriteId::SMALL_PORTRAIT) {
+                        let small_portrait_texture = small_portrait.create_texture(None, TextureFlags(0)).unwrap();
 
-                    commands.spawn_bundle(SpriteBundle {
-                        texture: small_portrait_texture.clone(),
-                        sprite: Sprite {
-                            size: small_portrait_texture.size.scale_for_screen(&configuration, profile.localcoord),
-                            offset: small_portrait.offset().scale_for_screen(&configuration, profile.localcoord),
+                        commands.spawn_bundle(SpriteBundle {
+                            texture: small_portrait_texture.clone(),
+                            sprite: Sprite {
+                                size: small_portrait_texture.size.scale_for_screen(&configuration, profile.localcoord),
+                                offset: small_portrait.offset().scale_for_screen(&configuration, profile.localcoord),
+                                ..Default::default()
+                            },
+                            transform: Transform2D::translation(position.x, position.y),
                             ..Default::default()
-                        },
-                        transform: Transform2D::translation(location.x, location.y),
-                        ..Default::default()
-                    }).insert(Parent(screen_entity));
+                        }).insert(Parent(screen_entity));
+                    }
                 }
             }
         }

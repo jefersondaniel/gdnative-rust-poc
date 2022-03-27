@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use gdnative::{core_types::{Point2, Vector2}};
+use bevy_ecs::{prelude::{Commands}, system::EntityCommands};
+use gdnative::{core_types::{Point2, Vector2, Transform2D}, api::visual_server::TextureFlags};
 
-use crate::{core::{sprite_id::SpriteId, sound_id::SoundId, enumerations::{SpriteEffects, ElementType}, error::DataError}, io::text_section::TextSection, drawing::{print_data::PrintData, sprite_file::SpriteFile, sff::sff_common::SffData}};
+use crate::{core::{sprite_id::SpriteId, sound_id::SoundId, enumerations::{SpriteEffects, ElementType}, error::DataError}, io::text_section::TextSection, drawing::{print_data::PrintData, sprite_file::SpriteFile, sff::sff_common::SffData}, systems::visual_server::sprite::{SpriteBundle, Sprite}};
 
 #[derive(Clone)]
 pub struct Element {
@@ -69,6 +70,29 @@ impl Element {
             layerno: textsection.get_attribute_or_default(&format!("{}.layerno", prefix)),
             scale: textsection.get_attribute_or(&format!("{}.scale", prefix), Vector2::new(1.0, 1.0)),
             sff,
+        })
+    }
+
+    pub fn render<'a, 'b>(
+        &self,
+        commands: &'b mut Commands<'a>,
+        position: Point2
+    ) -> EntityCommands<'a, 'b> {
+        let texture = self.sff.create_texture(None, TextureFlags(0)).unwrap();
+        let sff_offset = self.sff.offset();
+
+        commands.spawn_bundle(SpriteBundle {
+            texture: texture.clone(),
+            sprite: Sprite {
+                size: texture.size,
+                offset: Point2::new(
+                    sff_offset.x + self.offset.x,
+                    sff_offset.y + self.offset.y
+                ),
+                ..Default::default()
+            },
+            transform: Transform2D::translation(position.x, position.y),
+            ..Default::default()
         })
     }
 }
