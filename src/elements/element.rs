@@ -75,7 +75,7 @@ impl Element {
     ) -> EntityCommands<'a, 'b> {
         let sff = sprite_file.get_sprite(&self.spriteid);
 
-        if let Err(error) = sff {
+        if let Err(_) = sff {
             gdnative::godot_error!("Can't render element with sprite id: {}", self.spriteid);
 
             return commands.spawn();
