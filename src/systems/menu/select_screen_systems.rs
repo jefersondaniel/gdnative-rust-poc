@@ -5,7 +5,7 @@ use gdnative::{core_types::{Transform2D, Point2}, api::visual_server::TextureFla
 
 use crate::{menus::{menu_state::MenuState, select_screen::SelectScreen}, systems::{backgrounds::events::BackgroundGroupEvent, visual_server::{canvas_item::CanvasItemBundle, sprite::{SpriteBundle, Sprite}}}, core::{constants, sprite_id::SpriteId, configuration::{Configuration, ScaleForScreen}, enumerations::PlayerSelectType}, profiles::profile_loader::ProfileLoader};
 
-use super::setup_layers::HudLayer;
+use super::{setup_layers::HudLayer, components::MenuSpriteFile};
 
 #[derive(Default)]
 pub struct SelectScreenPlugin;
@@ -17,12 +17,14 @@ fn show_screen(
     mut commands: Commands,
     mut background_group_event: EventWriter<BackgroundGroupEvent>,
     mut profile_loader: ResMut<ProfileLoader>,
+    mut menu_sprite_file: ResMut<MenuSpriteFile>,
     configuration: Res<Configuration>,
     hud_layer_query: Query<Entity, With<HudLayer>>,
     select_screen: Res<SelectScreen>
 ) {
     let hud_entity = hud_layer_query.single().expect("HudLayer not found");
     let background_group = &select_screen.non_combat_screen.background_group;
+    let mut menu_sprite_file = menu_sprite_file.0.write().expect("Unable to read menu sprite file");
 
     let screen_entity = commands.spawn_bundle(CanvasItemBundle::default())
         .insert(ScreenMarker::default())
@@ -43,11 +45,19 @@ fn show_screen(
             position.x += (select_screen.cellsize.x + select_screen.cellspacing as f32) * x as f32;
             position.y += (select_screen.cellsize.y + select_screen.cellspacing as f32) * y as f32;
 
-            select_screen.cellbg.render(&mut commands, position).insert(Parent(screen_entity));
+            select_screen.cellbg.render(
+                &mut commands,
+                &mut menu_sprite_file,
+                position
+            ).insert(Parent(screen_entity));
 
             if let Some(select) = profile_loader.get_player_on_grid((x, y)) {
                 if select.select_type == PlayerSelectType::Random {
-                    select_screen.cellrandom.render(&mut commands, position).insert(Parent(screen_entity));
+                    select_screen.cellrandom.render(
+                        &mut commands,
+                        &mut menu_sprite_file,
+                        position
+                    ).insert(Parent(screen_entity));
                 } else {
                     let profile = select.profile.unwrap();
                     let mut sprite_file = profile.sprite_file.write().unwrap();

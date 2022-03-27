@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 use bevy_ecs::prelude::*;
 use gdnative::core_types::Size2;
 
@@ -15,7 +16,7 @@ use crate::profiles::profile_loader::ProfileLoader;
 use crate::systems::visual_server::shader::Shader;
 use crate::{core::{constants::{MUGEN_10_SYSTEM_PATH, MUGEN_11_SYSTEM_PATH}, error::DataError}, drawing::sprite_system::SpriteSystem, io::{file_system, text_file::TextFile}};
 
-use super::components::MenuSoundManager;
+use super::components::{MenuSoundManager, MenuSpriteFile};
 
 pub fn load_menus(
     mut commands: Commands,
@@ -54,6 +55,7 @@ pub fn load_menus(
 
     let sound_manager = SoundManager::load(&menu_data.sound_path)?;
 
+    commands.insert_resource(MenuSpriteFile(Arc::new(RwLock::new(sprite_file))));
     commands.insert_resource(profile_loader);
     commands.insert_resource(MenuSoundManager(sound_manager));
     commands.insert_resource(menu_data);

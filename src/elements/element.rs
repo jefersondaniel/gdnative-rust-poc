@@ -1,9 +1,7 @@
-use std::sync::Arc;
-
 use bevy_ecs::{prelude::{Commands}, system::EntityCommands};
 use gdnative::{core_types::{Point2, Vector2, Transform2D}, api::visual_server::TextureFlags};
 
-use crate::{core::{sprite_id::SpriteId, sound_id::SoundId, enumerations::{SpriteEffects, ElementType}, error::DataError}, io::text_section::TextSection, drawing::{print_data::PrintData, sprite_file::SpriteFile, sff::sff_common::SffData}, systems::visual_server::sprite::{SpriteBundle, Sprite}};
+use crate::{core::{sprite_id::SpriteId, sound_id::SoundId, enumerations::{SpriteEffects, ElementType}, error::DataError}, io::text_section::TextSection, drawing::{print_data::PrintData, sprite_file::SpriteFile}, systems::visual_server::sprite::{SpriteBundle, Sprite}};
 
 #[derive(Clone)]
 pub struct Element {
@@ -20,7 +18,6 @@ pub struct Element {
     pub layerno: i32,
     pub scale: Vector2,
     pub element_type: ElementType,
-    pub sff: Arc<SffData>,
 }
 
 impl Element {
@@ -53,8 +50,6 @@ impl Element {
             element_type = ElementType::Text;
         }
 
-        let sff = Arc::new(sprite_file.get_sprite(&spriteid)?);
-
         Ok(Element {
             flip,
             element_type,
@@ -69,17 +64,26 @@ impl Element {
             displaytime: textsection.get_attribute_or_default(&format!("{}.displaytime", prefix)),
             layerno: textsection.get_attribute_or_default(&format!("{}.layerno", prefix)),
             scale: textsection.get_attribute_or(&format!("{}.scale", prefix), Vector2::new(1.0, 1.0)),
-            sff,
         })
     }
 
     pub fn render<'a, 'b>(
         &self,
         commands: &'b mut Commands<'a>,
+        sprite_file: &mut SpriteFile,
         position: Point2
     ) -> EntityCommands<'a, 'b> {
-        let texture = self.sff.create_texture(None, TextureFlags(0)).unwrap();
-        let sff_offset = self.sff.offset();
+        let sff = sprite_file.get_sprite(&self.spriteid);
+
+        if let Err(error) = sff {
+            gdnative::godot_error!("Can't render element with sprite id: {}", self.spriteid);
+
+            return commands.spawn();
+        }
+
+        let sff = sff.unwrap();
+        let texture = sff.create_texture(None, TextureFlags(0)).unwrap();
+        let sff_offset = sff.offset();
 
         commands.spawn_bundle(SpriteBundle {
             texture: texture.clone(),
