@@ -1,6 +1,6 @@
 # GDNative Rust POC
 
-This is a POC of using Rust as a GDNative library in order to build a mugen based game. This POC aims to use a different architecture based on [Bevy ECS](https://bevyengine.org/) and [Rust game + Godot I/O layer](https://godot-rust.github.io/gdnative-book/overview/architecture.html#3-rust-game--godot-io-layer).
+This is a POC of using Rust as a GDNative library in order to build a mugen based game. This POC aims to use an architecture based on [Bevy ECS](https://bevyengine.org/) and [Rust game + Godot I/O layer](https://godot-rust.github.io/gdnative-book/overview/architecture.html#3-rust-game--godot-io-layer).
 
 ## Requirements
 
